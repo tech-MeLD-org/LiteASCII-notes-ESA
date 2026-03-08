@@ -1,42 +1,41 @@
 <script>
   export let name = "";
-  export let active = false;
+  // 格式化标签显示（全小写，符合极简美学）
+  $: displayName = name.toLowerCase();
+  // 编码 URL 防止中文标签跳转失效
+  $: url = `/tags/${encodeURIComponent(name)}`;
 </script>
 
-<a 
-  href={`/tags/${name}`} 
-  class="tag" 
-  class:active={active}
->
-  #{name}
+<a href={url} class="tag-link">
+  <span class="hash">#</span>{displayName}
 </a>
 
 <style>
-  .tag {
+  .tag-link {
     display: inline-flex;
     align-items: center;
     padding: 0.2rem 0.5rem;
-    background: var(--bg-2, #1a1a1a);
-    border: 1px solid var(--border, #333);
+    background: rgba(255, 69, 58, 0.08); /* 极淡的红背景 */
+    border: 1px solid rgba(255, 69, 58, 0.2); /* 半透明红边框 */
     border-radius: 4px;
-    font-size: 0.75rem;
+    color: var(--red, #ff453a); /* 使用全局定义的红色变量 */
     font-family: 'Courier New', monospace;
-    color: var(--text-2, #aaa);
+    font-size: 0.72rem;
     text-decoration: none;
     transition: all 0.2s ease;
-    cursor: pointer;
+    line-height: 1;
   }
 
-  .tag:hover {
-    border-color: var(--red, #ff4d4d);
-    color: var(--red, #ff4d4d);
-    background: var(--red-faint, rgba(255, 77, 77, 0.1));
+  .tag-link:hover {
+    background: rgba(255, 69, 58, 0.15);
+    border-color: rgba(255, 69, 58, 0.5);
     transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(255, 69, 58, 0.1);
   }
 
-  .tag.active {
-    background: var(--red, #ff4d4d);
-    color: white;
-    border-color: var(--red, #ff4d4d);
+  .hash {
+    opacity: 0.5;
+    margin-right: 1px;
+    font-weight: bold;
   }
 </style>
