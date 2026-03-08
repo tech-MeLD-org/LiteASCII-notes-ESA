@@ -4,7 +4,13 @@ import Navigation from '../components/Navigation.svelte';
 import Footer from '../components/Footer.astro';
 import { getCollection } from 'astro:content';
 
-const allNotes = await getCollection('notes');
+const rawNotes = await getCollection('notes');
+
+// 【核心修改】：过滤掉所有包含 'thoughts' 标签的笔记
+// 这里使用了安全的 optional chaining (?.) 来防止没有 tags 的笔记报错
+const allNotes = rawNotes.filter(n => 
+  !n.data.tags?.some(t => t.toLowerCase() === 'thoughts')
+);
 
 function getTitle(note) {
   if (note.data.title) return note.data.title;
@@ -46,7 +52,6 @@ const years = [...byYear.keys()].sort((a, b) => b - a);
       <p class="page-sub">知识积累的时间轴 · A chronological map of ideas</p>
     </div>
 
-    <!-- Dated notes grouped by year -->
     {years.length > 0 && (
       <div class="timeline">
         {years.map(year => (
@@ -86,7 +91,6 @@ const years = [...byYear.keys()].sort((a, b) => b - a);
       </div>
     )}
 
-    <!-- Undated notes -->
     {undatedNotes.length > 0 && (
       <section class="undated-section">
         <h2 class="undated-title">未标日期的笔记</h2>
@@ -104,7 +108,7 @@ const years = [...byYear.keys()].sort((a, b) => b - a);
     )}
 
     {allNotes.length === 0 && (
-      <p class="empty-msg">尚无笔记。将 Obsidian 文件放入 <code>src/content/</code> 开始。</p>
+      <p class="empty-msg">除随想外，尚无其他笔记。将 Obsidian 文件放入 <code>src/content/</code> 开始。</p>
     )}
   </main>
 
@@ -112,6 +116,7 @@ const years = [...byYear.keys()].sort((a, b) => b - a);
 </Layout>
 
 <style>
+  
   .main {
     padding-top: calc(var(--nav-h) + 2rem);
     max-width: 860px;
