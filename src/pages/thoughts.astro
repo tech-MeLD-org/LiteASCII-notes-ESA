@@ -1,37 +1,42 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import Navigation from '../components/Navigation.svelte';
-import Footer from '../components/Footer.astro';
-import { getCollection } from 'astro:content';
+import Layout from "../layouts/Layout.astro";
+import Navigation from "../components/Navigation.svelte";
+import Footer from "../components/Footer.astro";
+import { getCollection } from "astro:content";
+// thoughts.astro (部分代码)
+import Tag from "../components/Tag.svelte";
 
-// Filter notes tagged with 'thoughts' or in a thoughts folder
-const allNotes = await getCollection('notes');
+// 1. 获取所有笔记
+const allNotes = await getCollection("notes");
+
+// 2. 严格筛选包含 'thoughts' 标签的文档，并按时间倒序排序
+const thoughts = allNotes
+  .filter((n) => n.data.tags?.some((t) => t.toLowerCase() === "thoughts"))
+  .sort((a, b) => {
+    const da = a.data.date ? new Date(a.data.date).getTime() : 0;
+    const db = b.data.date ? new Date(b.data.date).getTime() : 0;
+    return db - da;
+  });
+
+// 3. 提取除了 'thoughts' 以外的其他标签，用于导航模块
+const otherTags = [
+  ...new Set(
+    thoughts
+      .flatMap((n) => n.data.tags || [])
+      .filter((t) => t.toLowerCase() !== "thoughts"),
+  ),
+];
 
 function getTitle(note) {
   if (note.data.title) return note.data.title;
   const match = note.body?.match(/^#\s+(.+)/m);
   if (match) return match[1].trim();
-  return note.id.replace(/\.md$/, '').split('/').pop() || 'Untitled';
+  return note.id.replace(/\.md$/, "").split("/").pop() || "Untitled";
 }
 
 function noteSlug(note) {
-  return note.id.replace(/\.md$/, '');
+  return note.id.replace(/\.md$/, "");
 }
-
-const thoughts = allNotes.filter(n =>
-  n.data.tags?.some(t => t.toLowerCase().includes('thought')) ||
-  n.id.toLowerCase().includes('thought')
-);
-
-const recent = allNotes
-  .sort((a, b) => {
-    const da = a.data.date ? new Date(a.data.date).getTime() : 0;
-    const db = b.data.date ? new Date(b.data.date).getTime() : 0;
-    return db - da;
-  })
-  .slice(0, 8);
-
-const displayNotes = thoughts.length > 0 ? thoughts : recent;
 ---
 
 <Layout title="Thoughts · LiteASCII">
@@ -41,38 +46,76 @@ const displayNotes = thoughts.length > 0 ? thoughts : recent;
     <div class="page-header">
       <h1 class="page-title">Thoughts</h1>
       <p class="page-sub">
-        {thoughts.length > 0
-          ? `${thoughts.length} 篇随想 · 标签: thoughts`
-          : `最近的 ${displayNotes.length} 篇笔记`}
+        {thoughts.length} 篇随想 · 记录灵光一闪的瞬间
       </p>
     </div>
 
-    <div class="notes-list">
-      {displayNotes.map(note => {
-        const date = note.data.date ? new Date(note.data.date) : null;
-        return (
-          <article class="note-row">
-            <a href={'/notes/' + noteSlug(note)} class="note-row-link">
-              <div class="note-row-left">
-                {date && (
-                  <time class="row-date">
-                    {date.toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' })}
-                  </time>
-                )}
-                <h3 class="row-title">{getTitle(note)}</h3>
-                {note.data.description && (
-                  <p class="row-desc">{note.data.description}</p>
-                )}
-              </div>
-              <span class="row-arrow">→</span>
-            </a>
-          </article>
-        );
-      })}
+    {
+      otherTags.length > 0 && (
+        <div class="tags-nav">
+          <span class="tags-label">更多维度:</span>
+          <div class="tags-cloud">
+            {otherTags.map((tag) => (
+              <Tag name={tag} client:load />
+            ))}
+          </div>
+        </div>
+      )
+    }
 
-      {displayNotes.length === 0 && (
-        <p class="empty-msg">暂无随想笔记。为笔记添加 <code>tags: [thoughts]</code> 标签即可显示。</p>
-      )}
+    <div class="notes-list">
+      {
+        thoughts.map((note) => {
+          const date = note.data.date ? new Date(note.data.date) : null;
+          // 获取当前笔记除了 thoughts 以外的标签，展示在标题下方
+          const noteOtherTags =
+            note.data.tags?.filter((t) => t.toLowerCase() !== "thoughts") || [];
+
+          return (
+            <article class="note-row">
+              <a href={"/notes/" + noteSlug(note)} class="note-row-link">
+                <div class="note-row-left">
+                  {date && (
+                    <time class="row-date">
+                      {date.toLocaleDateString("zh-CN", {
+                        year: "numeric",
+                        month: "2-digit",
+                        day: "2-digit",
+                      })}
+                    </time>
+                  )}
+                  <h3 class="row-title">{getTitle(note)}</h3>
+
+                  <div class="row-meta">
+                    {note.data.description && (
+                      <span class="row-desc">{note.data.description}</span>
+                    )}
+                    {noteOtherTags.length > 0 && (
+                      <div class="row-tags">
+                        {noteOtherTags.map((t) => (
+                          <span class="mini-tag">{t}</span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <span class="row-arrow">→</span>
+              </a>
+            </article>
+          );
+        })
+      }
+
+      {
+        thoughts.length === 0 && (
+          <div class="empty-msg">
+            <p>暂无随想笔记。</p>
+            <p>
+              请在 Obsidian 中为笔记添加 <code>tags: [thoughts]</code> 标签。
+            </p>
+          </div>
+        )
+      }
     </div>
   </main>
 
@@ -88,89 +131,152 @@ const displayNotes = thoughts.length > 0 ? thoughts : recent;
     padding-right: 1.5rem;
     padding-bottom: 3rem;
   }
-  .page-header { margin-bottom: 2rem; }
-  .page-title { margin: 0 0 0.3rem; }
+  .page-header {
+    margin-bottom: 1.5rem;
+  }
+  .page-title {
+    margin: 0 0 0.3rem;
+  }
   .page-sub {
     font-size: 0.82rem;
     color: var(--text-3);
-    font-family: 'Courier New', monospace;
+    font-family: "Courier New", monospace;
   }
 
-  .notes-list { display: flex; flex-direction: column; }
+  /* 辅助标签样式 */
+  .tags-nav {
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+  }
+  .tags-label {
+    font-size: 0.75rem;
+    color: var(--text-3);
+    text-transform: uppercase;
+    margin-top: 0.3rem;
+    white-space: nowrap;
+  }
+  .tags-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .tag-item {
+    font-size: 0.8rem;
+    color: var(--text-2);
+    padding: 0.2rem 0.6rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    transition: all 0.2s;
+  }
+  .tag-item:hover {
+    color: var(--red);
+    border-color: var(--red);
+    background: var(--red-faint);
+  }
 
+  .notes-list {
+    display: flex;
+    flex-direction: column;
+  }
   .note-row {
     border-bottom: 1px solid var(--border);
   }
-  .note-row:first-child { border-top: 1px solid var(--border); }
+  .note-row:first-child {
+    border-top: 1px solid var(--border);
+  }
 
   .note-row-link {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1rem 0.5rem;
+    padding: 1.2rem 0.5rem;
     gap: 1rem;
     color: inherit;
     transition: background 0.15s;
-    border-radius: 4px;
   }
-  .note-row-link:hover { background: var(--red-faint); }
+  .note-row-link:hover {
+    background: var(--bg-2);
+  }
 
-  .note-row-left { flex: 1; min-width: 0; }
-
+  .note-row-left {
+    flex: 1;
+    min-width: 0;
+  }
   .row-date {
     font-size: 0.7rem;
     color: var(--text-3);
-    font-family: 'Courier New', monospace;
+    font-family: "Courier New", monospace;
     display: block;
-    margin-bottom: 0.2rem;
+    margin-bottom: 0.3rem;
   }
 
   .row-title {
-    font-size: 0.95rem;
+    font-size: 1.05rem;
     font-weight: 600;
     color: var(--text);
-    margin: 0 0 0.25rem;
+    margin: 0 0 0.4rem;
     transition: color 0.15s;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
-  .note-row-link:hover .row-title { color: var(--red); }
+  .note-row-link:hover .row-title {
+    color: var(--red);
+  }
+
+  .row-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+  }
 
   .row-desc {
-    font-size: 0.78rem;
+    font-size: 0.82rem;
     color: var(--text-2);
     margin: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  }
+
+  .row-tags {
+    display: flex;
+    gap: 0.4rem;
+  }
+  .mini-tag {
+    font-size: 0.65rem;
+    color: var(--text-3);
+    padding: 0.1rem 0.4rem;
+    background: var(--bg-3);
+    border-radius: 3px;
+    font-family: "Courier New", monospace;
   }
 
   .row-arrow {
     font-size: 0.8rem;
     color: var(--text-3);
     flex-shrink: 0;
-    transition: color 0.15s, transform 0.15s;
+    transition: all 0.2s;
   }
   .note-row-link:hover .row-arrow {
     color: var(--red);
-    transform: translateX(3px);
+    transform: translateX(5px);
   }
 
   .empty-msg {
-    font-size: 0.85rem;
-    color: var(--text-3);
-    padding: 2rem;
+    padding: 3rem;
     text-align: center;
+    color: var(--text-3);
     border: 1px dashed var(--border);
-    border-radius: 6px;
+    border-radius: 12px;
     margin-top: 1rem;
   }
-  .empty-msg code {
-    font-family: 'Courier New', monospace;
-    color: var(--red);
+  code {
     background: var(--red-faint);
-    padding: 1px 5px;
-    border-radius: 3px;
+    color: var(--red);
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
   }
 </style>

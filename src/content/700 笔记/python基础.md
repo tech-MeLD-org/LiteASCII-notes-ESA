@@ -1,4 +1,9 @@
-
+---
+title: python基础          # 不填则自动取正文第一个 # 标题
+date: 2026-02-5         # 用于 Timeline 排序
+description:  567735点test输出  # 用于卡片摘要
+tags: [b]     # 用于标签和 Thoughts 筛选
+---
 # Python 起源
 
 Python 的设计哲学：优雅、明确、简单

@@ -1,0 +1,147 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Navigation from '../../components/Navigation.svelte';
+import Footer from '../../components/Footer.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const allNotes = await getCollection('notes');
+  // 提取所有笔记中去重后的标签
+  const uniqueTags = [...new Set(allNotes.flatMap((note) => note.data.tags || []))];
+
+  return uniqueTags.map((tag) => {
+    const filteredNotes = allNotes.filter((note) => 
+      note.data.tags?.includes(tag)
+    ).sort((a, b) => {
+      // 按日期倒序排列
+      const da = a.data.date ? new Date(a.data.date).getTime() : 0;
+      const db = b.data.date ? new Date(b.data.date).getTime() : 0;
+      return db - da;
+    });
+    return {
+      params: { tag },
+      props: { notes: filteredNotes },
+    };
+  });
+}
+
+const { tag } = Astro.params;
+const { notes } = Astro.props;
+
+// 匹配你 Frontmatter 逻辑的标题获取函数
+function getTitle(note) {
+  if (note.data.title) return note.data.title;
+  const match = note.body?.match(/^#\s+(.+)/m);
+  if (match) return match[1].trim();
+  return note.id.replace(/\.md$/, '').split('/').pop() || 'Untitled';
+}
+
+// 修复报错的关键：健壮的日期格式化
+function formatDate(dateVal) {
+  if (!dateVal) return '--/--';
+  const d = new Date(dateVal);
+  // 返回 YYYY-MM-DD 格式，适合你的 Timeline 风格
+  return d.toISOString().split('T')[0];
+}
+---
+
+<Layout title={`Tag: ${tag} · LiteASCII`}>
+  <Navigation client:load />
+  
+  <main class="main">
+    <header class="page-header">
+      <h1 class="page-title">#{tag}</h1>
+      <p class="page-sub">{notes.length} 篇相关的笔记 · 标签聚合</p>
+    </header>
+
+    <div class="notes-list">
+      {notes.map(note => (
+        <article class="note-row">
+          <a href={`/notes/${note.id.replace(/\.md$/, '')}`} class="note-row-link">
+            <div class="note-row-left">
+              <time class="row-date">{formatDate(note.data.date)}</time>
+              <h3 class="row-title">{getTitle(note)}</h3>
+              {note.data.description && (
+                <p class="row-desc">{note.data.description}</p>
+              )}
+            </div>
+            <span class="row-arrow">→</span>
+          </a>
+        </article>
+      ))}
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .main {
+    padding-top: calc(var(--nav-h) + 2rem);
+    max-width: 760px;
+    margin: 0 auto;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    padding-bottom: 3rem;
+  }
+  .page-header { margin-bottom: 2rem; border-left: 3px solid var(--red); padding-left: 1.2rem; }
+  .page-title { margin: 0 0 0.2rem; font-size: 1.8rem; }
+  .page-sub {
+    font-size: 0.8rem;
+    color: var(--text-3);
+    font-family: 'Courier New', monospace;
+  }
+
+  .notes-list { display: flex; flex-direction: column; }
+  .note-row { border-bottom: 1px solid var(--border); }
+  .note-row:first-child { border-top: 1px solid var(--border); }
+
+  .note-row-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.2rem 0.5rem;
+    gap: 1rem;
+    color: inherit;
+    transition: background 0.15s;
+  }
+  .note-row-link:hover { background: var(--bg-2); }
+
+  .note-row-left { flex: 1; min-width: 0; }
+  .row-date {
+    font-size: 0.7rem;
+    color: var(--text-3);
+    font-family: 'Courier New', monospace;
+    display: block;
+    margin-bottom: 0.3rem;
+  }
+
+  .row-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 0.3rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .note-row-link:hover .row-title { color: var(--red); }
+
+  .row-desc {
+    font-size: 0.82rem;
+    color: var(--text-2);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .row-arrow {
+    font-size: 0.8rem;
+    color: var(--text-3);
+    transition: all 0.2s;
+  }
+  .note-row-link:hover .row-arrow {
+    color: var(--red);
+    transform: translateX(5px);
+  }
+</style>
