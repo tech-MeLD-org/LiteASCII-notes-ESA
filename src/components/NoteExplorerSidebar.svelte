@@ -1,50 +1,56 @@
 <script>
-  export let data; // 接收 Astro 传来的 categories 和 tags
+  import { pathToSlug } from '../utils/note-logic';
+  let { allNotes = [], currentSlug = "" } = $props();
+
+  // 树状逻辑保持不变
+  function buildTree(notes) {
+    const root = { name: 'root', children: {}, files: [] };
+    notes.forEach(note => {
+      const parts = note.id.split('/');
+      const fileName = parts.pop();
+      let current = root;
+      parts.forEach(dir => {
+        if (!current.children[dir]) current.children[dir] = { name: dir, children: {}, files: [] };
+        current = current.children[dir];
+      });
+      current.files.push({ name: note.data.title || fileName.replace(/\.md$/, ''), slug: pathToSlug(note.id) });
+    });
+    return root;
+  }
+  const tree = $derived(buildTree(allNotes));
 </script>
 
-<div class="sidebar-stack">
-  <section class="fuwari-card profile">
-    <div class="avatar shadow-md">
-      <img src="/favicon.svg" alt="LiteASCII" />
+<aside class="explorer-sidebar">
+  <div class="sidebar-inner">
+    <div class="sidebar-label">EXPLORER</div>
+    <div class="tree-root">
+      {#snippet renderNode(node, depth = 0)}
+        {#each Object.values(node.children) as child}
+          <details open style="--depth: {depth}">
+            <summary class="folder-label"><span>󱏒</span> {child.name}</summary>
+            {@render renderNode(child, depth + 1)}
+          </details>
+        {/each}
+        {#each node.files as file}
+          <a href={`/notes/${file.slug}`} class="tree-file" class:active={currentSlug === file.slug} style="--depth: {depth}">
+            <span></span> {file.name}
+          </a>
+        {/each}
+      {/snippet}
+      {@render renderNode(tree)}
     </div>
-    <h2 class="text-lg font-bold">LiteASCII</h2>
-    <p class="text-sm opacity-60">探索知识的边界</p>
-  </section>
-
-  <section class="fuwari-card">
-    <div class="header">Categories</div>
-    {#each Object.entries(data.categories) as [name, count]}
-      <div class="item">
-        <span>{name}</span>
-        <span class="badge">{count}</span>
-      </div>
-    {/each}
-  </section>
-
-  <section class="fuwari-card">
-    <div class="header">Tags</div>
-    <div class="tag-cloud">
-      {#each Object.entries(data.tags) as [tag]}
-        <span class="static-tag">#{tag}</span>
-      {/each}
-    </div>
-  </section>
-</div>
+  </div>
+</aside>
 
 <style>
-  .fuwari-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 1rem;
-    padding: 1.25rem;
-  }
-  .static-tag {
-    color: var(--red); /* 使用你的主题强调色 */
-    background: rgba(var(--red-rgb), 0.1);
-    padding: 0.2rem 0.5rem;
-    border-radius: 0.4rem;
-    font-size: 0.85rem;
-    cursor: default; /* 明确非交互 */
-  }
-  /* ... */
+  .explorer-sidebar { width: 260px; height: 100%; border-right: 1px solid var(--border); }
+  .sidebar-inner { position: sticky; top: var(--nav-h); padding: 2rem 1rem; max-height: calc(100vh - var(--nav-h)); overflow-y: auto; }
+  .sidebar-label { font-size: 0.7rem; font-weight: 700; color: var(--text-3); margin-bottom: 1rem; letter-spacing: 0.1em; }
+  .folder-label, .tree-file { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.6rem; font-size: 0.85rem; color: var(--text-2); border-radius: 4px; text-decoration: none; cursor: pointer; }
+  .folder-label:hover, .tree-file:hover { background: var(--bg-2); }
+  .tree-file.active { background: var(--red-faint); color: var(--red); font-weight: 600; }
+  .folder-label { padding-left: calc(var(--depth) * 1rem + 0.5rem); }
+  .tree-file { padding-left: calc(var(--depth) * 1rem + 1.5rem); }
+  summary { list-style: none; }
+  summary::-webkit-details-marker { display: none; }
 </style>

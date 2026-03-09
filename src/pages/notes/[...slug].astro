@@ -1,118 +1,187 @@
 ---
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
-import Footer from '../../components/Footer.astro';
 import Navigation from '../../components/Navigation.svelte';
-// 导入统一的逻辑
+import NoteExplorerSidebar from '../../components/NoteExplorerSidebar.svelte';
+import Footer from '../../components/Footer.astro';
 import { isVisibleNote, pathToSlug, getNoteTitle } from '../../utils/note-logic';
 
 export async function getStaticPaths() {
   const noteEntries = await getCollection('notes');
-  // 使用统一的过滤逻辑，确保不生成附件页面
   const validNotes = noteEntries.filter(isVisibleNote);
-
   return validNotes.map(entry => ({
-    // 使用统一的 Slug 转换函数，确保 URL 与图谱 href 完全一致
     params: { slug: pathToSlug(entry.id) },
-    props: { entry },
+    props: { entry, allNotes: validNotes },
   }));
 }
 
-const { entry } = Astro.props;
-const { Content } = await entry.render();
-
-// 使用统一的标题提取逻辑
+const { entry, allNotes } = Astro.props;
+// render(entry) 返回 Content 组件和标题数组
+const { Content, headings } = await render(entry); 
 const title = getNoteTitle(entry);
+const currentSlug = pathToSlug(entry.id);
 ---
 
 <Layout title={`${title} · LiteASCII`}>
   <Navigation client:load />
 
-  <main class="note-container">
-    <article class="prose">
-      <header class="note-header">
-        <h1 class="note-title">{title}</h1>
-        {entry.data.date && (
-          <time class="note-date">
-            {new Date(entry.data.date).toLocaleDateString('zh-CN')}
-          </time>
-        )}
-        
-        {entry.data.tags && (
+  <div class="three-column-layout">
+    <NoteExplorerSidebar client:load allNotes={allNotes} currentSlug={currentSlug} />
+
+    <main class="content-column">
+      <article class="prose">
+        <header class="note-header">
+          <h1 class="note-title">{title}</h1>
           <div class="note-tags">
-            {entry.data.tags.map((tag: string) => (
-              <span class="tag-item">{tag}</span>
+            {entry.data.tags?.map((tag: string) => (
+              <a href={`/tags/${tag}`} class="tag">#{tag}</a>
             ))}
           </div>
-        )}
-      </header>
+        </header>
+        <section class="markdown-body">
+          <Content />
+        </section>
+      </article>
+      <Footer />
+    </main>
 
-      <hr class="header-divider" />
-
-      <section class="markdown-content">
-        <Content />
-      </section>
-    </article>
-  </main>
-
-  <Footer />
+    <aside class="toc-column">
+      <div class="toc-inner">
+        <div class="toc-label">ON THIS PAGE</div>
+        <nav id="toc-nav">
+          {headings
+            .filter(h => h.depth >= 1 && h.depth <= 4)
+            .map((h) => (
+              <a 
+                href={`#${h.slug}`} 
+                class={`toc-item d-${h.depth}`} 
+                data-slug={h.slug}
+              >
+                {h.text}
+              </a>
+            ))
+          }
+        </nav>
+      </div>
+    </aside>
+  </div>
 </Layout>
 
+<script>
+  // 1. 监听滚动实现目录高亮
+  const observerOptions = { rootMargin: '-20% 0px -75% 0px' };
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        document.querySelectorAll('#toc-nav a').forEach(a => a.classList.remove('active'));
+        const activeLink = document.querySelector(`#toc-nav a[href="#${entry.target.id}"]`);
+        if (activeLink) activeLink.classList.add('active');
+      }
+    });
+  }, observerOptions);
+
+  document.querySelectorAll('h2, h3, h4').forEach(h => observer.observe(h));
+
+  // 2. 实现点击平滑滚动
+  document.querySelectorAll('#toc-nav a').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      e.preventDefault();
+      const targetId = this.getAttribute('href').slice(1);
+      const targetEl = document.getElementById(targetId);
+      if (targetEl) {
+        const navHeight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 64;
+        window.scrollTo({
+          top: targetEl.offsetTop - navHeight - 20,
+          behavior: 'smooth'
+        });
+      }
+    });
+  });
+</script>
+
 <style>
-  .note-container {
-    padding-top: var(--nav-h);
-    max-width: 800px;
-    margin: 0 auto;
-    padding-inline: 1.5rem;
-    padding-bottom: 5rem;
+  /* ── 核心布局 (禁止重叠) ── */
+  .three-column-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr 240px;
+    gap: 0;
+    margin-top: var(--nav-h);
+    min-height: calc(100vh - var(--nav-h));
+    width: 100%;
   }
 
-  .note-header {
-    margin-top: 3rem;
-    margin-bottom: 2rem;
+  @media (max-width: 1200px) {
+    .three-column-layout { grid-template-columns: 260px 1fr; }
+    .toc-column { display: none; }
+  }
+  @media (max-width: 900px) {
+    .three-column-layout { grid-template-columns: 1fr; }
+    :global(.explorer-sidebar) { display: none; }
   }
 
-  .note-title {
-    font-size: 2.5rem;
-    font-weight: 800;
-    color: var(--text);
-    line-height: 1.2;
-    margin-bottom: 1rem;
-  }
-
-  .note-date {
-    font-family: var(--font-mono);
-    font-size: 0.9rem;
-    color: var(--text-3);
-  }
-
-  /* 标签样式：遵循主题颜色，非点击状态 */
-  .note-tags {
+  .content-column {
+    min-width: 0;
+    padding: 2rem 3rem;
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 1rem;
+    flex-direction: column;
   }
 
-  .tag-item {
-    font-size: 0.75rem;
-    padding: 0.2rem 0.6rem;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    color: var(--text-2);
-    font-family: var(--font-mono);
+  .markdown-body { flex: 1; line-height: 1.7; }
+
+  /* ── 滚轮做大定制 ── */
+  :global(.explorer-sidebar), .toc-column {
+    scrollbar-gutter: stable;
   }
 
-  .header-divider {
-    border: none;
-    border-top: 1px solid var(--border);
-    margin-bottom: 3rem;
+  /* 针对 Webkit 浏览器 (Chrome, Edge, Safari) */
+  ::-webkit-scrollbar {
+    width: 10px; /* 增加滚轮宽度 */
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--border-2);
+    border-radius: 10px;
+    border: 2px solid var(--bg); /* 通过边框创造滑块间距感 */
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--red);
   }
 
-  /* 针对渲染后的 Markdown 内容进行排版优化 */
-  .markdown-content {
-    line-height: 1.8;
-    color: var(--text-2);
+  /* ── 右侧目录样式 & 阶梯缩进 ── */
+  .toc-column { padding: 2rem 1rem; overflow-y: auto; height: fit-content; max-height: calc(100vh - var(--nav-h)); position: sticky; top: var(--nav-h); }
+  .toc-inner { border-left: 1px solid var(--border); }
+  .toc-label { font-size: 0.7rem; font-weight: 700; color: var(--text-3); margin-bottom: 1rem; padding-left: 1rem; }
+  
+  .toc-item {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--text-3);
+    text-decoration: none;
+    padding: 0.4rem 0;
+    transition: all 0.2s;
+    border-left: 2px solid transparent;
+    margin-left: -1.5px; /* 覆盖在基准线上 */
   }
+
+  /* 严格阶梯缩进 */
+  .d-2 { padding-left: 1rem; font-weight: 500; }
+  .d-3 { padding-left: 2rem; font-size: 0.8rem; }
+  .d-4 { padding-left: 3rem; font-size: 0.75rem; }
+
+  /* 亮色展示样式 */
+  .toc-item:hover { color: var(--red); }
+  .toc-item.active {
+    color: var(--red);
+    font-weight: 600;
+    border-left-color: var(--red);
+    background: var(--red-faint);
+  }
+
+  /* ── 文章头部 ── */
+  .note-header { margin-bottom: 3rem; border-bottom: 1px solid var(--border); padding-bottom: 2rem; }
+  .note-title { font-size: 2.5rem; font-weight: 800; margin-bottom: 1rem; }
+  .tag { font-size: 0.8rem; color: var(--red); background: var(--red-faint); padding: 0.2rem 0.5rem; border-radius: 4px; text-decoration: none; }
 </style>
