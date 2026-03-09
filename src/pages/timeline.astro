@@ -4,22 +4,15 @@ import Navigation from '../components/Navigation.svelte';
 import Footer from '../components/Footer.astro';
 import { getCollection } from 'astro:content';
 
-// 1. 获取所有笔记并排除带有 'thoughts' 标签的内容
+// ── 导入统一的逻辑工具 ──────────────────────────────────────────────────
+import { pathToSlug, getNoteTitle, isVisibleNote } from '../utils/note-logic';
+
+// 1. 获取所有笔记并排除带有 'thoughts' 标签的内容及附件
 const rawNotes = await getCollection('notes');
 const allNotes = rawNotes.filter(n => 
+  isVisibleNote(n) && 
   !n.data.tags?.some(t => t.toLowerCase() === 'thoughts')
 );
-
-function getTitle(note) {
-  if (note.data.title) return note.data.title;
-  const match = note.body?.match(/^#\s+(.+)/m);
-  if (match) return match[1].trim();
-  return note.id.replace(/\.md$/, '').split('/').pop() || 'Untitled';
-}
-
-function noteSlug(note) {
-  return note.id.replace(/\.md$/, '');
-}
 
 // 有日期的笔记用于时间轴
 const datedNotes = allNotes
@@ -29,7 +22,7 @@ const datedNotes = allNotes
 // 无日期的笔记显示在底部
 const undatedNotes = allNotes
   .filter(n => !n.data.date)
-  .sort((a, b) => getTitle(a).localeCompare(getTitle(b)));
+  .sort((a, b) => getNoteTitle(a).localeCompare(getNoteTitle(b)));
 
 // 按年份分组
 const byYear = new Map<number, typeof datedNotes>();
@@ -58,7 +51,9 @@ const years = [...byYear.keys()].sort((a, b) => b - a);
             <div class="year-items">
               {byYear.get(year)!.map(note => {
                 const date = new Date(note.data.date!);
-                const href = '/notes/' + noteSlug(note);
+                // 【关键修复】：使用统一的 Slug 转换规则
+                const href = '/notes/' + pathToSlug(note.id); 
+                
                 return (
                   <article class="timeline-item">
                     <div class="item-dot"></div>
@@ -79,7 +74,7 @@ const years = [...byYear.keys()].sort((a, b) => b - a);
                       </div>
                       
                       <a href={href} class="item-link">
-                        <h3 class="item-title">{getTitle(note)}</h3>
+                        <h3 class="item-title">{getNoteTitle(note)}</h3>
                         {note.data.description && (
                           <p class="item-desc">{note.data.description}</p>
                         )}
@@ -100,8 +95,9 @@ const years = [...byYear.keys()].sort((a, b) => b - a);
         <h2 class="undated-title">未标日期的笔记</h2>
         <div class="undated-grid">
           {undatedNotes.map(note => (
-            <a href={'/notes/' + noteSlug(note)} class="undated-item">
-              <span class="undated-name">{getTitle(note)}</span>
+            // 【关键修复】：未标日期部分同样使用统一 Slug
+            <a href={'/notes/' + pathToSlug(note.id)} class="undated-item">
+              <span class="undated-name">{getNoteTitle(note)}</span>
               <span class="undated-folder">
                 {note.id.includes('/') ? note.id.split('/').slice(0, -1).join('/') : 'root'}
               </span>
@@ -191,7 +187,6 @@ const years = [...byYear.keys()].sort((a, b) => b - a);
     font-family: 'Courier New', monospace;
   }
 
-  /* 标签容器及样式 */
   .item-tags-container {
     display: flex;
     gap: 0.5rem;
