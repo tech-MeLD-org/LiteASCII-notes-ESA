@@ -68,32 +68,30 @@ const currentSlug = pathToSlug(entry.id);
 </Layout>
 
 <script>
-  // 1. 监听滚动实现目录高亮
-  const observerOptions = { rootMargin: '-20% 0px -75% 0px' };
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        document.querySelectorAll('#toc-nav a').forEach(a => a.classList.remove('active'));
-        const activeLink = document.querySelector(`#toc-nav a[href="#${entry.target.id}"]`);
-        if (activeLink) activeLink.classList.add('active');
-      }
-    });
-  }, observerOptions);
-
-  document.querySelectorAll('h2, h3, h4').forEach(h => observer.observe(h));
-
-  // 2. 实现点击平滑滚动
+  // 1. 禁用滚动高亮 - 根据用户需求，滑动过程不显示高亮
+  // 原 IntersectionObserver 代码已移除，只保留点击高亮功能
+  
+  // 2. 实现点击平滑滚动并立即高亮
   document.querySelectorAll('#toc-nav a').forEach(anchor => {
-    anchor.addEventListener('click', function(e) {
+    anchor.addEventListener('click', (e) => {
       e.preventDefault();
-      const targetId = this.getAttribute('href').slice(1);
-      const targetEl = document.getElementById(targetId);
-      if (targetEl) {
-        const navHeight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 64;
-        window.scrollTo({
-          top: targetEl.offsetTop - navHeight - 20,
-          behavior: 'smooth'
-        });
+      const targetAnchor = e.currentTarget as HTMLAnchorElement;
+      
+      // 立即更新高亮状态
+      document.querySelectorAll('#toc-nav a').forEach(a => a.classList.remove('active'));
+      targetAnchor.classList.add('active');
+      
+      // 执行平滑滚动
+      const targetId = targetAnchor.getAttribute('href')?.slice(1);
+      if (targetId) {
+        const targetEl = document.getElementById(targetId);
+        if (targetEl) {
+          const navHeight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 64;
+          window.scrollTo({
+            top: targetEl.offsetTop - navHeight - 20,
+            behavior: 'smooth'
+          });
+        }
       }
     });
   });
@@ -128,26 +126,13 @@ const currentSlug = pathToSlug(entry.id);
 
   .markdown-body { flex: 1; line-height: 1.7; }
 
-  /* ── 滚轮做大定制 ── */
-  :global(.explorer-sidebar), .toc-column {
-    scrollbar-gutter: stable;
+  /* ── 移除目录区域滚轮样式（用户已全局设置） ── */
+  .toc-column {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;     /* Firefox */
   }
-
-  /* 针对 Webkit 浏览器 (Chrome, Edge, Safari) */
-  ::-webkit-scrollbar {
-    width: 10px; /* 增加滚轮宽度 */
-    height: 10px;
-  }
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  ::-webkit-scrollbar-thumb {
-    background-color: var(--border-2);
-    border-radius: 10px;
-    border: 2px solid var(--bg); /* 通过边框创造滑块间距感 */
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background-color: var(--red);
+  .toc-column::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
   }
 
   /* ── 右侧目录样式 & 阶梯缩进 ── */
@@ -164,6 +149,7 @@ const currentSlug = pathToSlug(entry.id);
     transition: all 0.2s;
     border-left: 2px solid transparent;
     margin-left: -1.5px; /* 覆盖在基准线上 */
+    cursor: pointer;
   }
 
   /* 严格阶梯缩进 */
