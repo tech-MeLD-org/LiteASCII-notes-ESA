@@ -3,30 +3,34 @@ import Layout from "../layouts/Layout.astro";
 import Navigation from "../components/Navigation.svelte";
 import Footer from "../components/Footer.astro";
 import { getCollection } from "astro:content";
-import Tag from "../components/Tag.svelte";
 
 const allNotes = await getCollection("notes");
 
+// 只展示 category 为 'thoughts' 的笔记
 const thoughts = allNotes
-  .filter((n) => n.data.tags?.some((t) => t.toLowerCase() === "thoughts"))
+  .filter((n) => n.data.category === "thoughts")
   .sort((a, b) => {
     const da = a.data.date ? new Date(a.data.date).getTime() : 0;
     const db = b.data.date ? new Date(b.data.date).getTime() : 0;
     return db - da;
   });
 
-const otherTags = [
-  ...new Set(thoughts.flatMap((n) => n.data.tags || []).filter((t) => t.toLowerCase() !== "thoughts")),
-];
-
-function getTitle(note) {
+function getTitle(note: any) {
   if (note.data.title) return note.data.title;
   const match = note.body?.match(/^#\s+(.+)/m);
   if (match) return match[1].trim();
   return note.id.replace(/\.md$/, "").split("/").pop() || "Untitled";
 }
 
-function noteSlug(note) { return note.id.replace(/\.md$/, ""); }
+function noteSlug(note: any) { 
+  return note.id.replace(/\.md$/, ""); 
+}
+
+function formatDate(dateVal: any) {
+  if (!dateVal) return "--/--";
+  const d = new Date(dateVal);
+  return d.toLocaleDateString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit" });
+}
 ---
 
 <Layout title="Thoughts · LiteASCII">
@@ -34,64 +38,43 @@ function noteSlug(note) { return note.id.replace(/\.md$/, ""); }
   <main class="main">
     <div class="page-header">
       <h1 class="page-title">Thoughts</h1>
-      <p class="page-sub">{thoughts.length} 篇随想 · 记录灵光一闪的瞬间</p>
+      <p class="page-subtitle">{thoughts.length} 篇随想 · 记录灵光一闪的瞬间</p>
     </div>
 
-    {otherTags.length > 0 && (
-      <div class="tags-nav">
-        <span class="tags-label">更多维度:</span>
-        <div class="tags-cloud">
-          {otherTags.map((tag) => <Tag name={tag} client:load />)}
-        </div>
-      </div>
-    )}
-
-    <div class="notes-list">
+    <div class="thoughts-list">
       {thoughts.map((note) => {
-        const date = note.data.date ? new Date(note.data.date) : null;
-        const noteOtherTags = note.data.tags?.filter((t) => t.toLowerCase() !== "thoughts") || [];
+        const noteTags = note.data.tags || [];
 
         return (
-          <article class="note-row card-click-wrapper">
-            <div class="note-row-inner">
-              <div class="note-row-left">
-                {date && (
-                  <time class="row-date">
-                    {date.toLocaleDateString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit" })}
-                  </time>
-                )}
+          <article class="thought-card card-click-wrapper">
+            <div class="card-inner">
+              <div class="card-left">
+                <time class="card-date">{formatDate(note.data.date)}</time>
                 
-                <a href={"/notes/" + noteSlug(note)} class="card-main-link">
-                  <h3 class="row-title">{getTitle(note)}</h3>
+                <a href={"/notes/" + noteSlug(note)} class="card-title-link">
+                  <h3 class="card-title">{getTitle(note)}</h3>
                 </a>
 
-                {note.data.description && (
-                  <p class="row-desc">{note.data.description}</p>
-                )}
-
-                <div class="meta-group" style="margin-top: 0.6rem;">
-                  {note.data.category && (
-                    <a href={`/category/${note.data.category}`} class="pill-category">{note.data.category}</a>
-                  )}
-                  {noteOtherTags.length > 0 && (
-                    <div class="pill-tags-group">
-                      {noteOtherTags.map((t) => (
-                        <a href={`/tags/${t}`} class="pill-tag">#{t}</a>
+                <div class="card-meta">
+                  {noteTags.length > 0 && (
+                    <div class="meta-tags">
+                      {noteTags.map((t: string) => (
+                        <a href={`/tags/${t}`} class="meta-tag">#{t}</a>
                       ))}
                     </div>
                   )}
                 </div>
               </div>
-              <span class="row-arrow">→</span>
+              <span class="card-arrow">→</span>
             </div>
           </article>
         );
       })}
 
       {thoughts.length === 0 && (
-        <div class="empty-msg">
+        <div class="empty-state">
           <p>暂无随想笔记。</p>
-          <p>请在 Obsidian 中为笔记添加 <code>tags: [thoughts]</code> 标签。</p>
+          <p>请在 Obsidian 中为笔记添加 <code>category: thoughts</code>。</p>
         </div>
       )}
     </div>
@@ -100,31 +83,185 @@ function noteSlug(note) { return note.id.replace(/\.md$/, ""); }
 </Layout>
 
 <style>
-  .main { padding-top: calc(var(--nav-h) + 2rem); max-width: 760px; margin: 0 auto; padding-left: 1.5rem; padding-right: 1.5rem; padding-bottom: 3rem; }
-  .page-header { margin-bottom: 1.5rem; }
-  .page-title { margin: 0 0 0.3rem; }
-  .page-sub { font-size: 0.82rem; color: var(--text-3); font-family: "Courier New", monospace; }
+  .main { 
+    padding-top: calc(var(--nav-h) + 2.5rem); 
+    max-width: 720px; 
+    margin: 0 auto; 
+    padding-left: 1.5rem; 
+    padding-right: 1.5rem; 
+    padding-bottom: 4rem; 
+  }
+  
+  .page-header { 
+    margin-bottom: 2rem; 
+    border-left: 3px solid var(--red);
+    padding-left: 1rem;
+  }
+  
+  .page-title { 
+    margin: 0 0 0.3rem; 
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  
+  .page-subtitle { 
+    font-size: 0.85rem; 
+    color: var(--text-3); 
+    font-family: "Courier New", monospace; 
+    margin: 0;
+  }
 
-  .tags-nav { margin-bottom: 2rem; padding: 1rem; background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; display: flex; align-items: flex-start; gap: 0.8rem; }
-  .tags-label { font-size: 0.75rem; color: var(--text-3); text-transform: uppercase; margin-top: 0.3rem; white-space: nowrap; }
-  .tags-cloud { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .thoughts-list { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 0.75rem;
+  }
+  
+  .thought-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    transition: all 0.2s ease;
+  }
+  
+  .thought-card:hover {
+    border-color: var(--red);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
 
-  .notes-list { display: flex; flex-direction: column; }
-  .note-row { border-bottom: 1px solid var(--border); }
-  .note-row:first-child { border-top: 1px solid var(--border); }
+  .card-inner { 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    padding: 0.9rem 1rem; 
+    gap: 1rem;
+  }
 
-  .note-row-inner { display: flex; align-items: center; justify-content: space-between; padding: 1.2rem 0.5rem; gap: 1rem; transition: background 0.15s; }
-  .note-row:hover .note-row-inner { background: var(--bg-2); }
+  .card-left { 
+    flex: 1; 
+    min-width: 0; 
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .card-date { 
+    font-size: 0.75rem; 
+    color: var(--text-3); 
+    font-family: "Courier New", monospace;
+    white-space: nowrap;
+    min-width: 80px;
+  }
+  
+  .card-title-link {
+    text-decoration: none;
+    color: inherit;
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .card-title-link::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+  
+  .card-title { 
+    font-size: 0.95rem; 
+    font-weight: 500; 
+    color: var(--text); 
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 0.2s;
+  }
+  
+  .thought-card:hover .card-title { 
+    color: var(--red); 
+  }
 
-  .note-row-left { flex: 1; min-width: 0; }
-  .row-date { font-size: 0.7rem; color: var(--text-3); font-family: "Courier New", monospace; display: block; margin-bottom: 0.3rem; }
-  .row-title { font-size: 1.05rem; font-weight: 600; color: var(--text); margin: 0 0 0.4rem; transition: color 0.15s; }
-  .note-row:hover .row-title { color: var(--red); }
-  .row-desc { font-size: 0.82rem; color: var(--text-2); margin: 0; line-height: 1.5;}
+  .card-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    position: relative;
+    z-index: 2;
+  }
+  
+  .meta-tags {
+    display: flex;
+    gap: 0.3rem;
+    flex-wrap: wrap;
+  }
+  
+  .meta-tag {
+    font-size: 0.7rem;
+    color: var(--text-3);
+    background: var(--bg-2);
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    text-decoration: none;
+    font-family: "Courier New", monospace;
+    transition: all 0.2s;
+  }
+  
+  .meta-tag:hover {
+    background: var(--border);
+    color: var(--text);
+  }
 
-  .row-arrow { font-size: 1rem; color: var(--text-3); flex-shrink: 0; transition: all 0.2s; position: relative; z-index: 2; }
-  .note-row:hover .row-arrow { color: var(--red); transform: translateX(5px); }
+  .card-arrow { 
+    font-size: 1.1rem; 
+    color: var(--text-3); 
+    flex-shrink: 0; 
+    transition: all 0.2s; 
+    position: relative; 
+    z-index: 2; 
+  }
+  
+  .thought-card:hover .card-arrow { 
+    color: var(--red); 
+    transform: translateX(4px); 
+  }
 
-  .empty-msg { padding: 3rem; text-align: center; color: var(--text-3); border: 1px dashed var(--border); border-radius: 12px; margin-top: 1rem; }
-  code { background: var(--red-faint); color: var(--red); padding: 0.2rem 0.4rem; border-radius: 4px; }
+  .empty-state { 
+    padding: 3rem; 
+    text-align: center; 
+    color: var(--text-3); 
+    border: 1px dashed var(--border); 
+    border-radius: 12px; 
+    margin-top: 1rem; 
+  }
+  
+  code { 
+    background: var(--red-faint); 
+    color: var(--red); 
+    padding: 0.15rem 0.4rem; 
+    border-radius: 4px; 
+    font-size: 0.85rem;
+  }
+
+  @media (max-width: 640px) {
+    .card-inner {
+      padding: 0.8rem;
+    }
+    
+    .card-left {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.4rem;
+    }
+    
+    .card-date {
+      font-size: 0.7rem;
+    }
+    
+    .card-title {
+      font-size: 0.9rem;
+    }
+  }
 </style>
