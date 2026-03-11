@@ -24,8 +24,8 @@ const refGraphData = buildReferenceGraph(validNotes);
 
   <main class="atlas-main">
     <header class="atlas-header">
-      <h1>Knowledge Atlas</h1>
-      <p>探索层级结构与思维关联</p>
+      <h1 class="page-title">Knowledge Atlas</h1>
+      <p class="page-sub">探索层级结构与思维关联</p>
     </header>
 
     <div class="atlas-container">
@@ -62,9 +62,24 @@ const refGraphData = buildReferenceGraph(validNotes);
   }
 
   .atlas-header {
-    padding: 2rem 0;
-    text-align: center;
     flex-shrink: 0;
+    border-left: 3px solid var(--red);
+    padding: 0.5rem 0 0.5rem 1rem;
+    margin: 1.5rem 0;
+  }
+
+  .page-title {
+    margin: 0 0 0.3rem;
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  .page-sub {
+    font-size: 0.85rem;
+    color: var(--text-3);
+    font-family: 'Courier New', monospace;
+    margin: 0;
   }
 
   .atlas-container {

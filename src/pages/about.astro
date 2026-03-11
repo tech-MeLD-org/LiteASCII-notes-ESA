@@ -4,18 +4,6 @@ import Navigation from '../components/Navigation.svelte';
 import Footer from '../components/Footer.astro';
 ---
 
-
-
-// 这里的代码只在构建时运行
-const response = await fetch('https://api.github.com/users/你的用户名');
-const data = await response.json();
-const publicStars = data.public_repos; // 或者通过 repos 接口累加所有 star
-
-
-
-
-
-
 <Layout title="About · LiteASCII">
   <Navigation client:load />
 
@@ -28,21 +16,19 @@ const publicStars = data.public_repos; // 或者通过 repos 接口累加所有 
     <article class="prose">
       <h2>LiteASCII</h2>
       <p>
-        LiteASCII 是一个个人知识库网站，基于 Obsidian 笔记构建。
-        通过将日常笔记发布为网站，让知识在连接中生长。
+        LiteASCII 是一个个人知识库网站，让知识在连接中生长。
       </p>
 
       <h2>技术栈</h2>
       <ul>
         <li><strong>Astro</strong> — 静态站点生成器</li>
         <li><strong>Svelte</strong> — 交互组件（图谱、导航）</li>
-        <li><strong>Obsidian</strong> — 笔记来源</li>
         <li><strong>Pagefind</strong> — 全文搜索</li>
       </ul>
 
       <h2>笔记说明</h2>
       <p>
-        笔记存放于 <code>src/content/</code>，保持 Obsidian 原生目录结构。
+        笔记需存放于 <code>src/content/</code>，保持 Obsidian 原生目录结构。
         附件图片统一放在笔记同级的 <code>attachments/</code> 文件夹中。
       </p>
     </article>
@@ -60,11 +46,21 @@ const publicStars = data.public_repos; // 或者通过 repos 接口累加所有 
     padding-right: 1.5rem;
     padding-bottom: 3rem;
   }
-  .page-header { margin-bottom: 2.5rem; }
-  .page-title { margin: 0 0 0.3rem; }
+  .page-header {
+    border-left: 3px solid var(--red);
+    padding: 0.5rem 0 0.5rem 1rem;
+    margin: 0 0 2.5rem 0;
+  }
+  .page-title {
+    margin: 0 0 0.3rem;
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
   .page-sub {
-    font-size: 0.82rem;
+    font-size: 0.85rem;
     color: var(--text-3);
     font-family: 'Courier New', monospace;
+    margin: 0;
   }
 </style>
