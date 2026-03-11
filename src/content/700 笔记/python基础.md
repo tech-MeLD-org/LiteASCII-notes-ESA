@@ -1,9 +1,9 @@
 ---
 title: python基础          # 不填则自动取正文第一个 # 标题
-date: 2025-08-5         # 用于 Timeline 排序
+date: 2026-08-5         # 用于 Timeline 排序
 description:  567735点test输出  # 用于卡片摘要
-tags: [b]     # 用于标签和 Thoughts 筛选
-category: 编程ai
+tags: [b,sdaf,sadgasgreb,baethaja,的啊啊发技术,阿萨德刚假日那个i按是,阿萨德刚爱是爱,jigbiu,asdfhsidflii]     # 用于标签和 Thoughts 筛选
+category: thoughts
 ---
 # Python 起源
 
