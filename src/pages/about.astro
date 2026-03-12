@@ -1,66 +1,41 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import Navigation from '../components/Navigation.svelte';
-import Footer from '../components/Footer.astro';
+import Header from '../components/layout/Header.svelte';
+import Footer from '../components/layout/Footer.svelte';
+import PageHeader from '../components/layout/PageHeader.svelte';
 ---
 
 <Layout title="About · LiteASCII">
-  <Navigation client:load />
+  <Header client:load />
 
-  <main class="main">
-    <div class="page-header">
-      <h1 class="page-title">About</h1>
-      <p class="page-sub">关于这个知识空间</p>
-    </div>
+  <main class="pt-[calc(52px+2.5rem)] max-w-3xl mx-auto px-6 pb-16">
+    <PageHeader 
+      client:load
+      title="About" 
+      subtitle="关于这个知识空间" 
+    />
 
-    <article class="prose">
-      <h2>LiteASCII</h2>
-      <p>
+    <article class="prose max-w-none">
+      <h2 class="text-xl font-bold text-text-main mb-4">LiteASCII</h2>
+      <p class="text-text-secondary mb-6">
         LiteASCII 是一个个人知识库网站，让知识在连接中生长。
       </p>
 
-      <h2>技术栈</h2>
-      <ul>
-        <li><strong>Astro</strong> — 静态站点生成器</li>
-        <li><strong>Svelte</strong> — 交互组件（图谱、导航）</li>
-        <li><strong>Pagefind</strong> — 全文搜索</li>
+      <h2 class="text-xl font-bold text-text-main mb-4">技术栈</h2>
+      <ul class="list-disc list-inside text-text-secondary mb-6 space-y-2">
+        <li><strong class="text-text-main">Astro</strong> — 静态站点生成器</li>
+        <li><strong class="text-text-main">Svelte</strong> — 交互组件（图谱、导航）</li>
+        <li><strong class="text-text-main">Tailwind CSS</strong> — 样式系统</li>
+        <li><strong class="text-text-main">Pagefind</strong> — 全文搜索</li>
       </ul>
 
-      <h2>笔记说明</h2>
-      <p>
-        笔记需存放于 <code>src/content/</code>，保持 Obsidian 原生目录结构。
-        附件图片统一放在笔记同级的 <code>attachments/</code> 文件夹中。
+      <h2 class="text-xl font-bold text-text-main mb-4">笔记说明</h2>
+      <p class="text-text-secondary">
+        笔记需存放于 <code class="text-primary bg-primary-faint px-1.5 py-0.5 rounded font-mono">src/content/</code>，保持 Obsidian 原生目录结构。
+        附件图片统一放在笔记同级的 <code class="text-primary bg-primary-faint px-1.5 py-0.5 rounded font-mono">attachments/</code> 文件夹中。
       </p>
     </article>
   </main>
 
   <Footer />
 </Layout>
-
-<style>
-  .main {
-    padding-top: calc(var(--nav-h) + 2rem);
-    max-width: 760px;
-    margin: 0 auto;
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-    padding-bottom: 3rem;
-  }
-  .page-header {
-    border-left: 3px solid var(--red);
-    padding: 0.5rem 0 0.5rem 1rem;
-    margin: 0 0 2.5rem 0;
-  }
-  .page-title {
-    margin: 0 0 0.3rem;
-    font-size: 1.8rem;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-  }
-  .page-sub {
-    font-size: 0.85rem;
-    color: var(--text-3);
-    font-family: 'Courier New', monospace;
-    margin: 0;
-  }
-</style>

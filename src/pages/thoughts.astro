@@ -1,299 +1,64 @@
 ---
-import Layout from "../layouts/Layout.astro";
-import Navigation from "../components/Navigation.svelte";
-import Footer from "../components/Footer.astro";
-import { getCollection } from "astro:content";
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/layout/Header.svelte';
+import Footer from '../components/layout/Footer.svelte';
+import PageHeader from '../components/layout/PageHeader.svelte';
+import NoteCard from '../components/features/NoteCard.svelte';
+import { getCollection } from 'astro:content';
+import { extractTitle, noteSlug, formatDate } from '../lib/utils/note';
 
-const allNotes = await getCollection("notes");
-
-// 只展示 category 为 'thoughts' 的笔记
+const allNotes = await getCollection('notes');
 const thoughts = allNotes
-  .filter((n) => n.data.category === "thoughts")
+  .filter((n) => n.data.category === 'thoughts')
   .sort((a, b) => {
     const da = a.data.date ? new Date(a.data.date).getTime() : 0;
     const db = b.data.date ? new Date(b.data.date).getTime() : 0;
     return db - da;
   });
 
-function getTitle(note: any) {
-  if (note.data.title) return note.data.title;
-  const match = note.body?.match(/^#\s+(.+)/m);
-  if (match) return match[1].trim();
-  return note.id.replace(/\.md$/, "").split("/").pop() || "Untitled";
-}
-
-function noteSlug(note: any) { 
-  return note.id.replace(/\.md$/, ""); 
-}
-
-function formatDate(dateVal: any) {
-  if (!dateVal) return "--/--";
-  const d = new Date(dateVal);
-  return d.toLocaleDateString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit" });
-}
+const notes = thoughts.map(note => ({
+  title: extractTitle(note),
+  href: `/notes/${noteSlug(note.id)}`,
+  date: formatDate(note.data.date),
+  description: note.data.description,
+  category: note.data.category,
+  tags: note.data.tags || [],
+}));
 ---
 
 <Layout title="Thoughts · LiteASCII">
-  <Navigation client:load />
-  <main class="main">
-    <div class="page-header">
-      <h1 class="page-title">Thoughts</h1>
-      <p class="page-subtitle">{thoughts.length} 篇随想 · 记录灵光一闪的瞬间</p>
+  <Header client:load />
+  
+  <main class="pt-[calc(52px+2.5rem)] max-w-3xl mx-auto px-6 pb-16">
+    <PageHeader 
+      client:load
+      title="Thoughts" 
+      subtitle={`${thoughts.length} 篇随想 · 记录灵光一闪的瞬间`} 
+    />
+    
+    <div class="flex flex-col gap-4">
+      {notes.map((note) => (
+        <NoteCard
+          client:load
+          title={note.title}
+          href={note.href}
+          date={note.date}
+          description={note.description}
+          category={note.category}
+          tags={note.tags}
+        />
+      ))}
     </div>
-
-    <div class="thoughts-list">
-      {thoughts.map((note) => {
-        const noteTags = note.data.tags || [];
-
-        return (
-          <article class="thought-card card-click-wrapper">
-            <div class="card-inner">
-              <div class="card-main">
-                <div class="card-row">
-                  <time class="card-date">{formatDate(note.data.date)}</time>
-                  <a href={"/notes/" + noteSlug(note)} class="card-title-link">
-                    <h3 class="card-title">{getTitle(note)}</h3>
-                  </a>
-                </div>
-                
-                {noteTags.length > 0 && (
-                  <div class="card-tags-row">
-                    <div class="meta-tags">
-                      {noteTags.slice(0, 5).map((t: string) => (
-                        <a href={`/tags/${t}`} class="meta-tag">#{t}</a>
-                      ))}
-                      {noteTags.length > 5 && (
-                        <span class="more-tags">+{noteTags.length - 5}</span>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-              <span class="card-arrow">→</span>
-            </div>
-          </article>
-        );
-      })}
-
-      {thoughts.length === 0 && (
-        <div class="empty-state">
-          <p>暂无随想笔记。</p>
-          <p>请在 Obsidian 中为笔记添加 <code>category: thoughts</code>。</p>
-        </div>
-      )}
-    </div>
+    
+    {thoughts.length === 0 && (
+      <div class="text-center py-12 border border-dashed border-border-color rounded-xl">
+        <p class="text-text-muted">暂无随想笔记</p>
+        <p class="text-sm text-text-muted mt-2">
+          请在 Obsidian 中为笔记添加 <code class="text-primary bg-primary-faint px-1.5 py-0.5 rounded">category: thoughts</code>
+        </p>
+      </div>
+    )}
   </main>
+  
   <Footer />
 </Layout>
-
-<style>
-  .main { 
-    padding-top: calc(var(--nav-h) + 2.5rem); 
-    max-width: 720px; 
-    margin: 0 auto; 
-    padding-left: 1.5rem; 
-    padding-right: 1.5rem; 
-    padding-bottom: 4rem; 
-  }
-  
-  .page-header { 
-    margin-bottom: 2rem; 
-    border-left: 3px solid var(--red);
-    padding-left: 1rem;
-  }
-  
-  .page-title { 
-    margin: 0 0 0.3rem; 
-    font-size: 1.8rem;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-  }
-  
-  .page-subtitle { 
-    font-size: 0.85rem; 
-    color: var(--text-3); 
-    font-family: "Courier New", monospace; 
-    margin: 0;
-  }
-
-  .thoughts-list { 
-    display: flex; 
-    flex-direction: column; 
-    gap: 0.75rem;
-  }
-  
-  .thought-card {
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--bg-card, #1a1a1a);
-    transition: all 0.2s ease;
-  }
-  
-  .thought-card:hover {
-    border-color: var(--red);
-    transform: translateY(-3px);
-  }
-
-  .card-inner { 
-    display: flex; 
-    align-items: center; 
-    justify-content: space-between; 
-    padding: 0.75rem 1rem; 
-    gap: 0.75rem;
-  }
-
-  .card-main {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-
-  .card-row {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    min-width: 0;
-  }
-  
-  .card-date { 
-    font-size: 0.75rem; 
-    color: var(--text-3); 
-    font-family: "Courier New", monospace;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-  
-  .card-title-link {
-    text-decoration: none;
-    color: inherit;
-    flex: 1;
-    min-width: 0;
-  }
-  
-  .card-title-link::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-  }
-  
-  .card-title { 
-    font-size: 0.95rem; 
-    font-weight: 600; 
-    color: var(--text); 
-    margin: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    transition: color 0.2s;
-    line-height: 1.4;
-  }
-  
-  .thought-card:hover .card-title { 
-    color: var(--red); 
-  }
-
-  .card-tags-row {
-    display: flex;
-    align-items: center;
-    min-width: 0;
-  }
-  
-  .meta-tags {
-    display: flex;
-    gap: 0.35rem;
-    flex-wrap: nowrap;
-    overflow: hidden;
-    align-items: center;
-  }
-  
-  .meta-tag {
-    font-size: 0.7rem;
-    color: var(--text-3);
-    background: var(--bg-2);
-    padding: 0.15rem 0.5rem;
-    border-radius: 4px;
-    text-decoration: none;
-    font-family: "Courier New", monospace;
-    transition: all 0.15s;
-    white-space: nowrap;
-    flex-shrink: 0;
-    position: relative;
-    z-index: 2;
-  }
-  
-  .meta-tag:hover {
-    background: var(--border);
-    color: var(--text);
-  }
-
-  .more-tags {
-    font-size: 0.7rem;
-    background: var(--red-faint);
-    color: var(--red);
-    padding: 0.15rem 0.5rem;
-    border-radius: 4px;
-    font-family: "Courier New", monospace;
-    white-space: nowrap;
-    flex-shrink: 0;
-    position: relative;
-    z-index: 2;
-  }
-
-  .card-arrow { 
-    font-size: 1.1rem; 
-    color: var(--text-3); 
-    flex-shrink: 0; 
-    transition: all 0.2s; 
-    position: relative; 
-    z-index: 2; 
-  }
-  
-  .thought-card:hover .card-arrow { 
-    color: var(--red); 
-    transform: translateX(4px); 
-  }
-
-  .empty-state { 
-    padding: 3rem; 
-    text-align: center; 
-    color: var(--text-3); 
-    border: 1px dashed var(--border); 
-    border-radius: 12px; 
-    margin-top: 1rem; 
-  }
-  
-  code { 
-    background: var(--red-faint); 
-    color: var(--red); 
-    padding: 0.15rem 0.4rem; 
-    border-radius: 4px; 
-    font-size: 0.85rem;
-  }
-
-  @media (max-width: 640px) {
-    .card-inner {
-      padding: 0.7rem 0.8rem;
-    }
-    
-    .card-row {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.3rem;
-    }
-    
-    .card-date {
-      font-size: 0.7rem;
-    }
-    
-    .card-title {
-      font-size: 0.9rem;
-    }
-
-    .meta-tags {
-      flex-wrap: wrap;
-    }
-  }
-</style>

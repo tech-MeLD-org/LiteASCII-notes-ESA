@@ -1,9 +1,10 @@
 ---
 import { getCollection, render } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
-import Navigation from '../../components/Navigation.svelte';
+import Header from '../../components/layout/Header.svelte';
 import NoteExplorerSidebar from '../../components/NoteExplorerSidebar.svelte';
-import Footer from '../../components/Footer.astro';
+import Footer from '../../components/layout/Footer.svelte';
+import Pill from '../../components/ui/Pill.svelte';
 import { isVisibleNote, pathToSlug, getNoteTitle } from '../../utils/note-logic';
 
 export async function getStaticPaths() {
@@ -25,38 +26,31 @@ const dateStr = date
   ? new Date(date).toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' })
   : null;
 
-// 修改：显示 1-3 级标题
 const filteredHeadings = headings.filter(h => h.depth >= 1 && h.depth <= 3);
 ---
 
 <Layout title={`${title} · LiteASCII`}>
-  <Navigation client:load />
+  <Header client:load />
 
-  <div class="page-container">
-    <div class="three-column-layout">
+  <div class="mt-[52px] flex flex-col">
+    <div class="flex w-full max-w-[1600px] mx-auto justify-center">
       <NoteExplorerSidebar client:load allNotes={allNotes} currentSlug={currentSlug} />
 
-      <main class="content-column">
-        <article class="prose">
-          <header class="note-header">
-            <a href="/" class="back-link">← BACK</a>
-            {dateStr && <time class="meta-date">{dateStr}</time>}
-            <h1 class="note-title">{title}</h1>
+      <main class="flex-1 min-w-0 max-w-[860px] py-10 px-16 pb-20">
+        <article class="prose max-w-none">
+          <header class="mb-14 pb-8 border-b border-dashed border-border-color">
+            <a href="/" class="text-xs text-text-muted mb-6 inline-block hover:text-primary transition-colors">← BACK</a>
+            {dateStr && <time class="font-mono text-xs text-text-muted block mb-2">{dateStr}</time>}
+            <h1 class="text-[2.8rem] font-extrabold leading-tight mb-5 text-text-main">{title}</h1>
             
-            <!-- Category 和 Tags 同一排显示，都可点击 -->
-            <div class="card-footer-meta">
+            <!-- Category 和 Tags -->
+            <div class="flex items-center gap-3 flex-wrap mt-4">
               {category && (
-                <a href={`/category/${category}`} class="pill-category">
-                  {category}
-                </a>
+                <Pill client:load variant="category" href={`/category/${category}`}>{category}</Pill>
               )}
-              {tags.length > 0 && (
-                <div class="pill-tags-group">
-                  {tags.map(tag => (
-                    <a href={`/tags/${tag}`} class="pill-tag">#{tag}</a>
-                  ))}
-                </div>
-              )}
+              {tags.map(tag => (
+                <Pill client:load variant="tag" href={`/tags/${tag}`}>#{tag}</Pill>
+              ))}
             </div>
           </header>
 
@@ -66,13 +60,24 @@ const filteredHeadings = headings.filter(h => h.depth >= 1 && h.depth <= 3);
         </article>
       </main>
 
-      <aside class="toc-column">
-        <div class="toc-inner">
-          <div class="toc-label">ON THIS PAGE</div>
+      <!-- TOC 右侧栏 -->
+      <aside class="w-[240px] flex-shrink-0 sticky top-[calc(52px+2rem)] h-fit max-h-[calc(100vh-52px-4rem)] overflow-y-auto scrollbar-hide overscroll-contain hidden lg:block">
+        <div class="border-l border-border-color pl-2 ml-4">
+          <div class="text-[0.65rem] font-bold text-text-muted uppercase tracking-wider mb-5 pl-3 opacity-50">
+            ON THIS PAGE
+          </div>
           <nav id="toc-nav">
             {filteredHeadings.map((h) => (
-              <a href={`#${h.slug}`} class={`toc-item d-${h.depth}`} title={h.text}>
-                <span class="toc-text">{h.text}</span>
+              <a 
+                href={`#${h.slug}`} 
+                class={`block py-1.5 px-3 rounded text-sm transition-all mb-0.5 text-text-muted overflow-hidden text-ellipsis whitespace-nowrap hover:bg-surface hover:text-text-secondary
+                  ${h.depth === 1 ? 'text-[0.82rem] pl-3 opacity-75' : ''}
+                  ${h.depth === 2 ? 'text-[0.78rem] pl-6 opacity-65' : ''}
+                  ${h.depth === 3 ? 'text-[0.75rem] pl-9 opacity-55' : ''}
+                `}
+                title={h.text}
+              >
+                <span class="overflow-hidden text-ellipsis whitespace-nowrap">{h.text}</span>
               </a>
             ))}
           </nav>
@@ -88,10 +93,10 @@ const filteredHeadings = headings.filter(h => h.depth >= 1 && h.depth <= 3);
   let scrollTimeout: any = null;
 
   function setActiveHeading(id: string) {
-    document.querySelectorAll('#toc-nav a').forEach(a => a.classList.remove('active'));
+    document.querySelectorAll('#toc-nav a').forEach(a => a.classList.remove('bg-primary-faint', 'text-primary', 'font-semibold', 'opacity-100'));
     const activeLink = document.querySelector(`#toc-nav a[href="#${id}"]`);
     if (activeLink) {
-      activeLink.classList.add('active');
+      activeLink.classList.add('bg-primary-faint', 'text-primary', 'font-semibold', 'opacity-100');
       activeLink.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     }
   }
@@ -132,119 +137,13 @@ const filteredHeadings = headings.filter(h => h.depth >= 1 && h.depth <= 3);
 </script>
 
 <style>
-  .page-container { margin-top: var(--nav-h); display: flex; flex-direction: column; }
-  .three-column-layout { display: flex; width: 100%; max-width: 1600px; margin: 0 auto; justify-content: center; }
-
-  .content-column { flex: 1; min-width: 0; max-width: 860px; padding: 2.5rem 4rem 5rem; }
-
-  /* ── 右侧 TOC：调暗亮度 & 增加层级感 ── */
-  .toc-column {
-    width: 240px; flex-shrink: 0; position: sticky; top: calc(var(--nav-h) + 2rem);
-    height: fit-content; max-height: calc(100vh - var(--nav-h) - 4rem);
-    overflow-y: auto; scrollbar-width: none; overscroll-behavior: contain;
-  }
-  .toc-column::-webkit-scrollbar { display: none; }
-
-  .toc-inner { border-left: 1px solid var(--border); padding-left: 0.5rem; margin-left: 1rem; }
-  .toc-label { 
-    font-size: 0.65rem; font-weight: 700; color: var(--text-3); 
-    margin-bottom: 1.2rem; letter-spacing: 0.1em; padding-left: 0.8rem;
-    opacity: 0.5; /* 调得比左侧略淡，更显安静 */
-  }
-  
-  .toc-item {
-    display: flex; align-items: center; text-decoration: none;
-    padding: 0.35rem 0.8rem; line-height: 1.4; transition: all 0.2s;
-    border-radius: 4px; margin-bottom: 2px;
-    color: var(--text-3); /* 基色调暗 */
-    opacity: 0.65; /* 初始亮度 */
-  }
-  .toc-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-  /* 阶梯缩进 */
-  .d-1 { 
-    font-size: 0.82rem; 
-    font-weight: 400; 
-    padding-left: 0.8rem; 
-    color: var(--text-2);
-    opacity: 0.75;
-  }
-  .d-2 { font-size: 0.78rem; padding-left: 1.6rem; opacity: 0.65; }
-  .d-3 { font-size: 0.75rem; padding-left: 2.4rem; opacity: 0.55; }
-
-  .toc-item:hover { background: var(--bg-2); color: var(--text-2); opacity: 1; }
-  
-  /* 激活状态 */
-  .toc-item.active {
-    background: var(--red-faint); color: var(--red); font-weight: 600; opacity: 1;
-  }
-
   /* 正文一级标题为红色 */
   :global(.markdown-body h1) {
-    color: var(--red);
+    color: #e74c3c;
   }
 
-  /* ── 其他样式 ── */
-  .note-header { margin-bottom: 3.5rem; padding-bottom: 2rem; border-bottom: 1px dashed var(--border); }
-  .back-link { font-size: 0.75rem; color: var(--text-3); text-decoration: none; margin-bottom: 1.5rem; display: inline-block; opacity: 0.7; }
-  
-  .meta-date { 
-    font-family: 'Courier New', monospace; 
-    font-size: 0.75rem; 
-    color: var(--text-3); 
-    display: block;
-    margin-bottom: 0.5rem;
+  @media (max-width: 900px) {
+    :global(.explorer-sidebar) { display: none; }
+    main { padding: 2rem 1.25rem; }
   }
-  
-  .note-title { 
-    font-size: 2.8rem; 
-    font-weight: 850; 
-    line-height: 1.15; 
-    margin: 0 0 1.2rem; 
-  }
-
-  /* Category 和 Tags 同一排显示 - 与 postcard 样式一致 */
-  .card-footer-meta { 
-    display: flex; 
-    align-items: center; 
-    gap: 0.8rem; 
-    flex-wrap: wrap;
-    margin-top: 1rem;
-  }
-
-  /* 分类 Pill - 与 postcard 一致 */
-  .pill-category {
-    font-size: 0.7rem; 
-    font-weight: 600; 
-    color: #ff5e4d;
-    background: rgba(255, 94, 77, 0.08);
-    padding: 0.2rem 0.6rem; 
-    border-radius: 4px;
-    text-decoration: none; 
-    font-family: 'Courier New', monospace;
-    transition: all 0.2s;
-  }
-  .pill-category:hover { background: rgba(255, 94, 77, 0.15); }
-
-  /* 标签 Pill - 与 postcard 一致 */
-  .pill-tags-group { display: flex; gap: 0.4rem; flex-wrap: wrap; }
-  .pill-tag {
-    font-size: 0.7rem; 
-    color: var(--text-2); 
-    background: var(--bg-2);
-    padding: 0.15rem 0.5rem; 
-    border-radius: 4px;
-    font-family: 'Courier New', monospace; 
-    text-decoration: none;
-    transition: all 0.2s;
-  }
-  .pill-tag:hover { background: var(--border); color: var(--text); }
-
-  /* 保留旧样式兼容性 */
-  .note-meta { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.8rem; }
-  .meta-category-old { font-family: 'Courier New', monospace; font-size: 0.72rem; color: var(--red); font-weight: 600; text-transform: uppercase; }
-  .note-tag { font-size: 0.75rem; color: var(--red); background: var(--red-faint); padding: 0.15rem 0.5rem; border-radius: 3px; font-family: 'Courier New', monospace; margin-right: 0.5rem; }
-
-  @media (max-width: 1200px) { .toc-column { display: none; } }
-  @media (max-width: 900px) { :global(.explorer-sidebar) { display: none; } .content-column { padding: 2rem 1.25rem; } }
 </style>

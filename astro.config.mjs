@@ -6,6 +6,9 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
+// ─── Path Aliases Configuration ────────────────────────────────────────────
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 // ─── Shared: Astro glob-loader slug algorithm ─────────────────────────────────
 // Mirrors what Astro's glob loader does to file paths when generating note.id
 // e.g. "200 PC中的指令/2.4 Git/2.4.1 安装 Git.md"
@@ -191,6 +194,15 @@ function obsidianContentIntegration() {
 export default defineConfig({
   vite: {
     plugins: [tailwindcss(), viteContentPlugin()],
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, './src'),
+        '@components': path.resolve(__dirname, './src/components'),
+        '@lib': path.resolve(__dirname, './src/lib'),
+        '@types': path.resolve(__dirname, './src/types'),
+        '@styles': path.resolve(__dirname, './src/styles'),
+      },
+    },
   },
   integrations: [svelte(), obsidianContentIntegration()],
   markdown: {
