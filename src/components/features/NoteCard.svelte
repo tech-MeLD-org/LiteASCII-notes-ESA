@@ -20,7 +20,7 @@
     description,
     category,
     tags = [],
-    maxTags = 3,
+    maxTags = 6,
     highlightTag,
     highlightCategory
   }: Props = $props();

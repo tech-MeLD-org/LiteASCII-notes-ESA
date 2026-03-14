@@ -48,13 +48,11 @@ const { notes, totalNotes, categoryMap, tagMap } = Astro.props;
 
 const categories = Array.from(categoryMap.entries())
   .sort(([,a], [,b]) => b - a)
-  .map(([name, count]) => ({ name, href: `/category/${encodeURIComponent(name)}`, count }))
-  .slice(0, 10);
+  .map(([name, count]) => ({ name, href: `/category/${encodeURIComponent(name)}`, count }));
 
 const tags = Array.from(tagMap.entries())
   .sort(([,a], [,b]) => b - a)
-  .map(([name, count]) => ({ name, href: `/tags/${encodeURIComponent(name)}`, count }))
-  .slice(0, 20);
+  .map(([name, count]) => ({ name, href: `/tags/${encodeURIComponent(name)}`, count }));
 
 const noteListData = notes.map(note => ({
   title: extractTitle(note),

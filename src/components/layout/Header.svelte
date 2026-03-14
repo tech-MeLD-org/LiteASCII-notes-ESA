@@ -179,7 +179,7 @@
   >
     <div 
       class="w-[min(640px,90vw)] bg-bg-card border border-border-light rounded-xl overflow-hidden shadow-2xl"
-      onclick={(e) => e.stopPropagation()}
+    onclick={(e) => e.stopPropagation()}
     >
       <div class="flex items-center justify-between px-4 py-3 border-b border-border-color">
         <span class="text-xs text-text-secondary font-medium">搜索文档</span>
