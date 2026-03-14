@@ -1,0 +1,87 @@
+/* components.css */
+@layer components {
+  /* ── UI Pill 基础样式 ─────────────────────────────────────────────────── */
+  .ui-pill {
+    @apply inline-flex items-center gap-1 rounded font-mono transition-all duration-300 ease-in-out;
+  }
+
+  .ui-pill-sm {
+    @apply text-xs px-2 py-0.5;
+  }
+
+  .ui-pill-md {
+    @apply text-sm px-3 py-1;
+  }
+
+  /* ── 标签 (Tag) ── */
+  /* 默认：暗淡/低调 */
+  /* 悬停：变成红色调，效果与 Category 一致 */
+  .ui-pill-tag {
+    @apply bg-[#1e1e20] text-[#565658] border border-transparent 
+           hover:bg-[var(--color-primary-faint)] 
+           hover:text-[var(--color-primary)] 
+           hover:border-[var(--color-primary-soft)]
+           relative z-10; 
+  }
+
+  /* ── 分类 (Category) ── */
+  /* 默认：已经是红色调 */
+  /* 悬停：背景和文字进一步加亮 */
+  .ui-pill-category {
+    @apply bg-[var(--color-primary-faint)] text-[var(--color-primary)] border border-transparent
+           hover:bg-[var(--color-primary-soft)] 
+           hover:text-[var(--color-primary-light)]
+           hover:border-[var(--color-primary-soft)]
+           relative z-10;
+  }
+
+  /* ── 默认/计数变体 (例如那个 +n) ── */
+  .ui-pill-default {
+    @apply bg-[#1e1e20] text-[#a8a8a6] border border-transparent 
+           hover:bg-[#303032] hover:text-[#e8e8e6];
+  }
+
+  /* ── 卡片基础样式 ─────────────────────────────────────────────────────── */
+  .ui-card {
+    @apply bg-[#242426] border border-[#303032] rounded-lg overflow-hidden transition-all duration-300;
+  }
+
+  .interactive-card {
+    @apply relative transition-all duration-300 ease-out;
+  }
+
+  /* 移除了之前的 .interactive-card:hover .ui-pill-tag 联动 */
+  /* 现在卡片悬停只负责卡片自身的外框和位移 */
+  .ui-card-hover,
+  .interactive-card:hover {
+    @apply hover:border-[#424244] hover:shadow-lg hover:shadow-black/20 hover:-translate-y-0.5;
+  }
+
+  /* ── Timeline 时间轴专用样式 ─────────────────────────────────────────── */
+  
+  /* 垂直时间线 */
+  .timeline-line {
+    @apply absolute left-[27px] top-2 bottom-0 w-px bg-[var(--color-border)] hidden sm:block;
+  }
+
+  /* 时间轴圆点 */
+  .timeline-dot {
+    @apply w-2 h-2 rounded-full bg-[var(--color-border)] transition-colors z-10 hidden sm:block;
+  }
+
+  /* 圆点悬停效果 - 需要在 group 内使用 */
+  .group:hover .timeline-dot {
+    @apply bg-[var(--color-primary)];
+  }
+
+  /* READ → 悬停效果 */
+  .timeline-read-more {
+    @apply text-xs text-[var(--color-primary)] font-mono opacity-0 transition-all transform translate-x-2 ml-auto hidden sm:inline;
+  }
+
+  .group:hover .timeline-read-more {
+    @apply opacity-100 translate-x-0;
+  }
+}
+
+

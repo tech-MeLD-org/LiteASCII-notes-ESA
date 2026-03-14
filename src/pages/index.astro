@@ -3,10 +3,12 @@ import Layout from '../layouts/Layout.astro';
 import Header from '../components/layout/Header.svelte';
 import Footer from '../components/layout/Footer.svelte';
 import Sidebar from '../components/layout/Sidebar.svelte';
-import AsciiArt from '../components/AsciiArt.svelte';
+import AsciiArt from '../components/features/AsciiArt.svelte';
 import NoteCard from '../components/features/NoteCard.svelte';
 import { getCollection } from 'astro:content';
-import { extractTitle, noteSlug, countCategories, countTags, sortByDate } from '../lib/utils/note';
+import { extractTitle, noteSlug, countCategories, countTags, sortByDate } from '../lib/core/note-logic';
+
+
 
 const allNotes = await getCollection('notes');
 

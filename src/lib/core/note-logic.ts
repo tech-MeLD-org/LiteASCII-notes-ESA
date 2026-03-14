@@ -1,10 +1,9 @@
 /**
  * LiteASCII 核心逻辑层
  * 统一接管所有笔记相关的逻辑处理
- * 整合自: src/utils/note-logic.ts, src/lib/utils/note.ts, src/lib/utils/path.ts
  */
 
-import type { NoteCollectionItem, NoteCardData, NoteFrontmatter } from '../../types/note';
+import type { NoteCollectionItem, NoteCardData, NoteFrontmatter } from '../../types/note';    //types/note.ts
 
 // ==========================================
 // 1. Slug / 路径处理
@@ -21,7 +20,7 @@ export function pathToSlug(filePath: string): string {
     .map((seg) =>
       seg
         .toLowerCase()
-        .replace(/\./g, '-') // 小数点 → 横杠（关键规则）
+        .replace(/\./g, '') // 删除小数点（关键规则）
         .replace(/\s+/g, '-')
         .replace(/[^\w\u4e00-\u9fff\u3400-\u4dbf-]/g, '')
         .replace(/-+/g, '-')

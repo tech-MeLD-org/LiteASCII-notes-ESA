@@ -6,8 +6,7 @@ import Sidebar from '../../components/layout/Sidebar.svelte';
 import NoteList from '../../components/features/NoteList.svelte';
 import PageHeader from '../../components/layout/PageHeader.svelte';
 import { getCollection } from 'astro:content';
-import { isVisibleNote } from '../../utils/note-logic';
-import { extractTitle, noteSlug, formatDate, countCategories, countTags, sortByDate } from '../../lib/utils/note';
+import { isVisibleNote, extractTitle, noteSlug, formatDate, countCategories, countTags, sortByDate } from '../../lib/core/note-logic';
 
 const allNotes = await getCollection('notes');
 const validNotes = allNotes.filter(isVisibleNote);

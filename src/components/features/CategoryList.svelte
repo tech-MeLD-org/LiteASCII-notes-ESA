@@ -1,117 +1,134 @@
 <script lang="ts">
-  // 确保路径正确，引入你定义的统一逻辑
-  import { isVisibleNote } from '../../utils/note-logic';
+  import { buildNoteTree, type TreeNode } from '../../lib/utils/note-tree';
+  import { createSidebar } from '../../lib/hooks/useCategoryList.svelte';
 
+  // 接收 Props (遵循你的定义)
+  interface Note {
+    id: string;
+    data: { title?: string };
+  }
   interface Props {
-    allNotes?: any[];
-    currentCategory?: string;
+    allNotes?: Note[];
+    currentSlug?: string;
+    minWidth?: number;
+    maxWidth?: number;
+    defaultWidth?: number;
   }
 
-  let { allNotes = [], currentCategory = "" }: Props = $props();
+  let { 
+    allNotes = [], 
+    currentSlug = '',
+    minWidth = 180,
+    maxWidth = 600,
+    defaultWidth = 260
+  }: Props = $props();
 
-  // ── 状态管理 ──────────────────────────────────────────────────────────
-  let sidebarWidth = $state(260);
-  let isResizing = $state(false);
-  let sidebarRef = $state<HTMLElement>();
-  
-  let startX = 0;
-  let startWidth = 0;
+  // 使用封装的逻辑状态
+  const sidebar = createSidebar({ minWidth, maxWidth, defaultWidth });
 
-  // ── 逻辑修复：正确的 $derived 使用方式 ──────────────────────────────────
-  // 1. 先过滤出可见笔记
-  const validNotes = $derived(allNotes.filter(isVisibleNote));
+  // 派生数据：树结构
+  const tree = $derived(buildNoteTree(allNotes));
 
-  // 2. 直接在 $derived 内部进行逻辑计算，不要写成立即执行函数
-  const categories = $derived.by(() => {
-    const map = new Map<string, number>();
-    
-    validNotes.forEach(note => {
-      const cat = note.data?.category || '未分类';
-      map.set(cat, (map.get(cat) || 0) + 1);
-    });
-    
-    return Array.from(map.entries())
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => b.count - a.count);
-  });
-
-  // ── 交互逻辑 (保持不变) ───────────────────────────────────────────────
-  function startResize(e: MouseEvent) {
-    e.preventDefault();
-    isResizing = true;
-    startX = e.clientX;
-    startWidth = sidebarWidth;
-    document.body.style.cursor = 'col-resize';
-    document.body.style.userSelect = 'none';
-  }
-
-  function stopResize() {
-    if (!isResizing) return;
-    isResizing = false;
-    document.body.style.cursor = '';
-    document.body.style.userSelect = '';
-    localStorage.setItem('category-sidebar-width', sidebarWidth.toString());
-  }
-
-  function handleMouseMove(e: MouseEvent) {
-    if (!isResizing) return;
-    const deltaX = e.clientX - startX;
-    sidebarWidth = Math.min(Math.max(startWidth + deltaX, 180), 600);
-  }
-
+  // 滚动位置恢复逻辑 (由于涉及 DOM 绑定，保留在组件内)
+  let sidebarRef = $state<HTMLDivElement>();
   $effect(() => {
-    const saved = localStorage.getItem('category-sidebar-width');
-    if (saved) sidebarWidth = parseInt(saved, 10);
+    if (!sidebarRef) return;
+    const savedScroll = sessionStorage.getItem('explorer-scroll-pos');
+    if (savedScroll) sidebarRef.scrollTop = parseInt(savedScroll, 10);
+    
+    const savePos = () => {
+      if (sidebarRef) {
+        sessionStorage.setItem('explorer-scroll-pos', sidebarRef.scrollTop.toString());
+      }
+    };
+    
+    sidebarRef.addEventListener('scroll', savePos, { passive: true });
+    return () => sidebarRef?.removeEventListener('scroll', savePos);
   });
 </script>
 
-<svelte:window onmousemove={handleMouseMove} onmouseup={stopResize} />
+<svelte:window 
+  onmousemove={sidebar.actions.handleMouseMove} 
+  onmouseup={sidebar.actions.stopResize} 
+/>
 
 <aside 
-  class="relative h-full border-r border-border bg-bg shrink-0 z-10"
-  style="width: {sidebarWidth}px"
+  class="relative h-full border-r border-border-color flex-shrink-0 bg-bg z-10"
+  style="width: {sidebar.width}px"
 >
   <div 
     bind:this={sidebarRef}
-    class="sticky top-[52px] p-6 max-h-[calc(100vh-52px)] overflow-y-auto overscroll-contain scrollbar-none"
+    class="sticky top-[var(--nav-h)] px-5 py-8 max-h-[calc(100vh-var(--nav-h))] overflow-y-auto overscroll-contain scrollbar-none"
   >
-    <div class="text-[10px] font-bold text-text-muted mb-6 tracking-[0.2em] uppercase opacity-60">
-      Category Explorer
+    <div class="text-[0.65rem] font-bold text-text-tertiary mb-5 tracking-[0.12em] opacity-70">
+      EXPLORER
     </div>
-
-    <ul class="space-y-1">
-      {#each categories as cat}
-        {@const isActive = currentCategory === cat.name}
-        <li>
-          <a 
-            href={cat.name === '未分类' ? '/notes' : `/category/${cat.name}`}
-            class="group flex items-center justify-between px-3 py-2 rounded-lg text-[13px] transition-all
-                   {isActive 
-                     ? 'bg-primary/10 text-primary font-medium' 
-                     : 'text-text-secondary hover:bg-bg-secondary hover:text-text-main'}"
-          >
-            <div class="flex items-center gap-2.5">
-              <div class="w-1.5 h-1.5 rounded-full {isActive ? 'bg-primary' : 'bg-border group-hover:bg-primary/50'} transition-colors"></div>
-              <span class="truncate">{cat.name}</span>
-            </div>
-            
-            <span class="font-mono text-[10px] opacity-40 group-hover:opacity-100">
-              {cat.count.toString().padStart(2, '0')}
-            </span>
-          </a>
-        </li>
-      {/each}
-    </ul>
+    
+    <div class="tree-root">
+      {@render renderNode(tree)}
+    </div>
   </div>
 
   <div 
-    onmousedown={startResize}
-    class="absolute right-[-2px] inset-y-0 w-1 cursor-col-resize z-20 transition-colors
-      {isResizing ? 'bg-primary opacity-50' : 'hover:bg-primary/30'}"
+    class="absolute -right-0.5 top-0 bottom-0 w-1 cursor-col-resize z-20 transition-colors duration-200
+           hover:bg-red/60 {sidebar.isResizing ? 'bg-red/60' : ''}"
+    onmousedown={sidebar.actions.startResize}
+    role="separator"
+    aria-orientation="vertical"
+    aria-label="调整侧边栏宽度"
   ></div>
 </aside>
 
+{#snippet renderNode(node: TreeNode, depth = 0)}
+  {#each Object.values(node.children) as child}
+    <details open style="--depth: {depth}">
+      <summary 
+        class="flex items-center px-2.5 py-1.5 text-[0.82rem] rounded cursor-pointer text-text-tertiary
+               hover:bg-bg-secondary hover:text-text whitespace-nowrap overflow-hidden text-ellipsis w-full"
+        title={child.name}
+      >
+        {child.name}
+      </summary>
+      {@render renderNode(child, depth + 1)}
+    </details>
+  {/each}
+  
+  {#each node.files as file}
+    <a 
+      href={`/notes/${file.slug}`} 
+      class="flex items-center px-2.5 py-1.5 text-[0.82rem] rounded no-underline cursor-pointer
+             text-text-secondary whitespace-nowrap overflow-hidden text-ellipsis w-full
+             hover:bg-bg-secondary hover:text-text
+             {currentSlug === file.slug ? 'bg-red-faint text-red font-semibold' : ''}"
+      style="padding-left: calc(var(--depth) * 0.8rem + 1.4rem)"
+      title={file.name}
+    >
+      <span class="w-full overflow-hidden text-ellipsis">{file.name}</span>
+    </a>
+  {/each}
+{/snippet}
+
 <style>
-  .scrollbar-none::-webkit-scrollbar { display: none; }
-  .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  :global(body.is-resizing) {
+    cursor: col-resize !important;
+    user-select: none !important;
+  }
+  
+  details > summary {
+    list-style: none;
+    outline: none;
+  }
+  
+  details > summary::-webkit-details-marker {
+    display: none;
+  }
 </style>

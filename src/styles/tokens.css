@@ -1,0 +1,26 @@
+/* tokens.css (设计变量)，专门用于存放所有 CSS 变量（颜色、间距等），方便统一管理主题。 */
+:root {
+  /* Primary - Red theme */
+  --color-primary: #e74c3c;
+  --color-primary-light: #ff6b5b;
+  --color-primary-dark: #c0392b;
+  --color-primary-faint: rgba(231, 76, 60, 0.1);
+  --color-primary-soft: rgba(231, 76, 60, 0.22);
+
+  /* Background */
+  --color-bg: #161618;
+  --color-bg-secondary: #1e1e20;
+  --color-bg-card: #242426;
+
+  /* Text */
+  --color-text: #e8e8e6;
+  --color-text-secondary: #a8a8a6;
+  --color-text-muted: #565658;
+
+  /* Border */
+  --color-border: #303032;
+  --color-border-light: #424244;
+
+  /* Navigation */
+  --nav-height: 52px;
+}

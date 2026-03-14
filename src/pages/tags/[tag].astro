@@ -6,7 +6,7 @@ import Sidebar from '../../components/layout/Sidebar.svelte';
 import NoteList from '../../components/features/NoteList.svelte';
 import PageHeader from '../../components/layout/PageHeader.svelte';
 import { getCollection } from 'astro:content';
-import { extractTitle, noteSlug, formatDate, countCategories, countTags } from '../../lib/utils/note';
+import { extractTitle, noteSlug, formatDate, countCategories, countTags } from '../../lib/core/note-logic';
 
 export async function getStaticPaths() {
   const allNotes = await getCollection('notes');

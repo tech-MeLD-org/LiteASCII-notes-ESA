@@ -6,7 +6,7 @@ import ReferenceGraph from '../components/graph/ReferenceGraph.svelte';
 import DirectoryGraph from '../components/graph/DirectoryGraph.svelte';
 import PageHeader from '../components/layout/PageHeader.svelte';
 import { getCollection } from 'astro:content';
-import { isVisibleNote, buildDirectoryTree, buildReferenceGraph } from '../utils/note-logic';
+import { isVisibleNote, buildDirectoryTree, buildReferenceGraph } from '../lib/core/note-logic';
 
 const allNotes = await getCollection('notes');
 const validNotes = allNotes.filter(isVisibleNote);

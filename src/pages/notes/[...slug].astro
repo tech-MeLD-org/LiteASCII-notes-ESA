@@ -2,10 +2,10 @@
 import { getCollection, render } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import Header from '../../components/layout/Header.svelte';
-import NoteExplorerSidebar from '../../components/NoteExplorerSidebar.svelte';
+import CategoryList from '../../components/features/CategoryList.svelte';
 import Footer from '../../components/layout/Footer.svelte';
 import Pill from '../../components/ui/Pill.svelte';
-import { isVisibleNote, pathToSlug, getNoteTitle } from '../../utils/note-logic';
+import { isVisibleNote, pathToSlug, getNoteTitle } from '../../lib/core/note-logic';
 
 export async function getStaticPaths() {
   const noteEntries = await getCollection('notes');
@@ -34,7 +34,7 @@ const filteredHeadings = headings.filter(h => h.depth >= 1 && h.depth <= 3);
 
   <div class="mt-[52px] flex flex-col">
     <div class="flex w-full max-w-[1600px] mx-auto justify-center">
-      <NoteExplorerSidebar client:load allNotes={allNotes} currentSlug={currentSlug} />
+      <CategoryList client:load allNotes={allNotes} currentSlug={currentSlug} />
 
       <main class="flex-1 min-w-0 max-w-[860px] py-10 px-16 pb-20">
         <article class="prose max-w-none">

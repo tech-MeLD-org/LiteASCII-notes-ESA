@@ -5,7 +5,7 @@ import Footer from '../components/layout/Footer.svelte';
 import PageHeader from '../components/layout/PageHeader.svelte';
 import NoteCard from '../components/features/NoteCard.svelte';
 import { getCollection } from 'astro:content';
-import { extractTitle, noteSlug, formatDate } from '../lib/utils/note';
+import { extractTitle, noteSlug, formatDate } from '../lib/core/note-logic';
 
 const allNotes = await getCollection('notes');
 const thoughts = allNotes
