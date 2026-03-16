@@ -1,7 +1,8 @@
 @layer components {
   /* ── UI Pill 基础样式 ─────────────────────────────────────────────────── */
+/* 1. 基础样式：移除 font-mono */
   .ui-pill {
-    @apply inline-flex items-center gap-1 rounded font-mono transition-all duration-300 ease-in-out;
+    @apply inline-flex items-center gap-1 rounded transition-all duration-300 ease-in-out;
   }
 
   .ui-pill-sm { @apply text-xs px-2 py-0.5; }
@@ -18,22 +19,22 @@
   }
 
   .ui-pill-tag-active {
-    @apply bg-[var(--color-primary)] text-white border border-[var(--color-primary)] 
-           font-semibold relative z-10;
+    @apply bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] border border-[var(--color-primary)] 
+           /*font-semibold relative z-10;*/
   }
 
   /* ── 分类 (Category) ── */
   .ui-pill-category {
+    /* 颜色可通过 CSS 变量覆盖：--pill-category-color */
     @apply bg-[var(--color-primary-faint)] text-[var(--color-primary)] border border-transparent
            hover:bg-[var(--color-primary-soft)] 
-           hover:text-[var(--color-primary)]
+           hover:text-[var(--pill-category-hover-color)]
            hover:border-[var(--color-primary-soft)]
            relative z-10;
   }
-
   .ui-pill-category-active {
-    @apply bg-[var(--color-primary)] text-white border border-[var(--color-primary)] 
-           font-semibold relative z-10;
+    @apply bg-[var(--color-primary-faint)] text-[var(--color-text-secondary)] border border-[var(--color-primary)] 
+           /*font-semibold relative z-10;*/
   }
 
   /* ── 默认/计数变体 (例如 +n) ── */

@@ -1,6 +1,6 @@
-/* tokens.css */
+/* tokens.css - CSS 变量（与 Tailwind v4 主题同步） */
 
-/* 1. 默认状态（暗色模式） */
+/* 默认状态（暗色模式）*/
 :root {
   /* Primary - Red theme */
   --color-primary: #e74c3c;
@@ -28,13 +28,13 @@
   --heading-h2: #f1c833;
   --heading-h3: #8be248;
 
-  /* 通用常量（不随主题改变） */
+  /* 通用常量 */
   --space-6: 1.5rem;
   --radius-xl: 1rem;
   --nav-height: 52px;
 }
 
-/* 2. 浅色模式覆盖（当 html 标签带有 data-theme="light" 时生效） */
+/* 浅色模式覆盖 */
 :root[data-theme="light"] {
   /* Background (Light) */
   --color-bg: #f8f9fa;
@@ -51,7 +51,7 @@
   --color-border-light: #d1d5db;
 
   /* Document - Heading (Light) */
-  --heading-h1: #d35400; /* 浅色下稍微加深一点红色以保证阅读 */
+  --heading-h1: #d35400;
   --heading-h2: #b7950b;
   --heading-h3: #1e8449;
   
@@ -60,7 +60,7 @@
   --color-primary-soft: rgba(231, 76, 60, 0.25);
 }
 
-/* 3. 基础类定义（移出 :root 内部） */
+/* 基础类定义 */
 @layer components {
   .card-border {
     background-color: var(--color-bg-card);
@@ -68,6 +68,6 @@
     border-radius: var(--radius-xl);
     padding: var(--space-6);
     color: var(--color-text);
-    transition: all 0.3s ease; /* 增加平滑切换效果 */
+    transition: all 0.3s ease;
   }
 }

@@ -54,21 +54,21 @@ const allTags = Array.from(tagMap.entries())
       <!-- 右侧内容区 -->
       <main class="flex-1 min-w-0 pb-8 w-full">
         <!-- ASCII 动画 Hero -->
-        <section class="border border-border-color rounded-xl bg-bg p-8 mb-10 flex flex-col items-center">
+        <section class="border border-border rounded-xl bg-bg p-8 mb-10 flex flex-col items-center">
           <div class="w-full flex justify-center items-center min-h-[200px]">
             <AsciiArt client:only="svelte" noteCount={noteCount} />
           </div>
-          <div class="flex justify-center gap-8 mt-6 pt-6 border-t border-border-color w-full">
+          <div class="flex justify-center gap-8 mt-6 pt-6 border-t border-border w-full">
             <div class="flex flex-col items-center gap-1">
-              <span class="text-2xl font-bold text-text-main font-mono">{noteCount}</span>
+              <span class="text-2xl font-bold text-text font-mono">{noteCount}</span>
               <span class="text-xs text-text-muted uppercase tracking-wider">Notes</span>
             </div>
             <div class="flex flex-col items-center gap-1">
-              <span class="text-2xl font-bold text-text-main font-mono">{categoryMap.size}</span>
+              <span class="text-2xl font-bold text-text font-mono">{categoryMap.size}</span>
               <span class="text-xs text-text-muted uppercase tracking-wider">Categories</span>
             </div>
             <div class="flex flex-col items-center gap-1">
-              <span class="text-2xl font-bold text-text-main font-mono">{tagMap.size}</span>
+              <span class="text-2xl font-bold text-text font-mono">{tagMap.size}</span>
               <span class="text-xs text-text-muted uppercase tracking-wider">Tags</span>
             </div>
           </div>
@@ -77,12 +77,12 @@ const allTags = Array.from(tagMap.entries())
         <!-- Recent Notes -->
         <section>
           <div class="flex items-baseline justify-between mb-5 border-l-[3px] border-primary pl-4">
-            <h2 class="text-lg font-bold text-text-main tracking-tight">Recent Notes</h2>
-            <a href="/notes" class="text-sm text-primary font-mono hover:text-text-main transition-colors">All notes →</a>
+            <h2 class="text-lg font-bold text-text tracking-tight">Recent Notes</h2>
+            <a href="/notes" class="text-sm text-primary font-mono hover:text-text transition-colors">All notes →</a>
           </div>
           
           {noteCount === 0 ? (
-            <p class="text-sm text-text-muted py-8 text-center border border-dashed border-border-color rounded-lg bg-bg">
+            <p class="text-sm text-text-muted py-8 text-center border border-dashed border-border rounded-lg bg-bg">
               将 Obsidian 笔记放入 <code class="text-primary bg-primary-faint px-1.5 py-0.5 rounded font-mono">src/content/</code> 即可显示
             </p>
           ) : (
