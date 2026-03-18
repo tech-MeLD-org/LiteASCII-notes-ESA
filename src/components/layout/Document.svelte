@@ -10,7 +10,7 @@
   const { activeHeadingId, scrollToHeading } = useDocument(headings);
 </script>
 
-<aside class="w-[240px] flex-shrink-0 sticky top-[calc(52px+2rem)] h-fit max-h-[calc(100vh-52px-4rem)] overflow-y-auto scrollbar-hide overscroll-contain hidden lg:block">
+<aside class="w-[240px] flex-shrink-0 sticky top-[calc(52px+2rem)] h-fit max-h-[calc(100vh-52px-4rem)] overflow-y-auto scrollbar-none hidden lg:block">
   <div class="border-l border-[var(--color-border)] pl-2 ml-4">
     <div class="text-[0.65rem] font-bold text-[var(--color-text-muted)] uppercase tracking-wider mb-5 pl-3 opacity-50">
       ON THIS PAGE
@@ -39,3 +39,14 @@
     </nav>
   </div>
 </aside>
+
+<style>
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+</style>

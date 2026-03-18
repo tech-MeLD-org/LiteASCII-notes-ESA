@@ -58,7 +58,7 @@
 >
   <div 
     bind:this={sidebarRef}
-    class="sticky top-[var(--nav-h)] px-5 py-8 max-h-[calc(100vh-var(--nav-h))] overflow-y-auto overscroll-contain scrollbar-none"
+    class="sticky top-[var(--nav-h)] px-5 py-8 max-h-[calc(100vh-var(--nav-h))] overflow-y-auto scrollbar-none"
   >
     <div class="text-[0.65rem] font-bold text-text-tertiary mb-5 tracking-[0.12em] opacity-70">
       EXPLORER
