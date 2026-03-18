@@ -1,4 +1,3 @@
-
 [中文](./README.zh.md) | English
 
 # LiteASCII
@@ -251,4 +250,3 @@ This project is licensed under the [MIT](https://www.google.com/search?q=LICENSE
 ---
 
 > 🌟 If this project helped you, please give it a Star!
->
