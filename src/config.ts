@@ -6,7 +6,7 @@ export const siteConfig = {
   
   // 社交链接与 GitHub 展示配置
   github: {
-    username: 'your-github-id', // 你的 GitHub 用户名
+    username: 'tech-MeLD', // 你的 GitHub 用户名
     repo: 'LiteASCII',          // 默认展示的主仓库名
   },
   

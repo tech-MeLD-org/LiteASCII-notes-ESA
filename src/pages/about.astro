@@ -4,9 +4,11 @@ import Header from '../components/layout/Header.svelte';
 import Footer from '../components/layout/Footer.svelte';
 import PageHeader from '../components/layout/PageHeader.svelte';
 import GithubCard from '../components/features/GithubCard.svelte';
+import { siteConfig } from '../config';
+
 
 // 在这里配置你的 GitHub 仓库
-const repoPath = "tech-MeLD/LiteASCII"; 
+const repoPath = `${siteConfig.github.username}/${siteConfig.github.repo}`;
 const GITHUB_TOKEN = import.meta.env.GITHUB_TOKEN;
 
 let repoData = null;
@@ -38,6 +40,9 @@ try {
 } catch (e) {
   console.error("🚨 请求发送失败:", e);
 }
+
+console.log("当前使用的仓库路径:", repoPath);
+console.log("Token 加载状态:", GITHUB_TOKEN ? "✅ 已加载" : "❌ 未加载 (匿名访问)");
 ---
 
 <Layout title="About · LiteASCII">
