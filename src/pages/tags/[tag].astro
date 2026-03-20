@@ -30,7 +30,7 @@ export async function getStaticPaths() {
     });
     
     return {
-      params: { tag },
+      params: { tag }, // 直接传入原始大小写的 tag，例如 'Index'
       props: { 
         notes: filteredNotes, 
         tag,
@@ -45,6 +45,7 @@ export async function getStaticPaths() {
 const { tag } = Astro.params;
 const { notes, totalNotes, categoryMap, tagMap } = Astro.props;
 
+// 确保侧边栏生成的链接也严格使用原始大小写
 const categories = Array.from(categoryMap.entries())
   .sort(([,a], [,b]) => b - a)
   .map(([name, count]) => ({ name, href: `/category/${encodeURIComponent(name)}`, count }));
