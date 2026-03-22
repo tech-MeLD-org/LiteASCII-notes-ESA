@@ -16,7 +16,8 @@ Build output is located in the `dist/` directory. A live demo is deployed on  **
 
 Supports TypeWriter terminal animations and WebGL-based ASCII video rendering.
 
-![ASCII Animation](public/gif/ascii.gif)
+![ASCII Animation1](public/gif/TypeWriter.gif)
+![ASCII Animation2](public/gif/ascii.gif)
 
 ### 2. 🔗 **Obsidian Knowledge Graph**
 

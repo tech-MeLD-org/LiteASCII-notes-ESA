@@ -14,7 +14,8 @@
 
 支持 TypeWriter 打字动画和 WebGL ASCII 视频动画渲染
 
-![ASCII 动画](public/gif/ascii.gif)
+![ASCII 动画1](public/gif/TypeWriter.gif)
+![ASCII 动画2](public/gif/ascii.gif)
 
 ### 2. 🔗 **Obsidian 关系图谱** 
 
