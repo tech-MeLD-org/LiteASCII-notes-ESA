@@ -6,8 +6,8 @@ export const siteConfig = {
   
   // 社交链接与 GitHub 展示配置
   github: {
-    username: 'tech-MeLD', // 你的 GitHub 用户名
-    repo: 'LiteASCII',          // 默认展示的主仓库名
+    username: 'tech-MeLD-org', // 你的 GitHub 用户名
+    repo: 'liteascii-notes-esa',          // 默认展示的主仓库名
   },
   
   navLinks: [
