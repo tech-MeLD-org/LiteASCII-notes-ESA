@@ -231,6 +231,8 @@ The build output in `dist/` can be deployed to any static hosting provider:
 
 .env：GITHUB_TOKEN=""
 
+Config file：config.ts
+
 * [Vercel](https://vercel.com)
 * [Netlify](https://netlify.com)
 * [GitHub Pages](https://pages.github.com)
