@@ -38,4 +38,9 @@ jobs:
           ALIBABA_CLOUD_ACCESS_KEY_SECRET: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_SECRET }}
         # --yes 跳过交互式确认，直接静默部署
         run: |
-            npx esa-cli deploy --yes
+            npx esa-cli login \
+                --ak $ALIBABA_CLOUD_ACCESS_KEY_ID \
+                --sk $ALIBABA_CLOUD_ACCESS_KEY_SECRET
+
+            
+            npx esa-cli deploy 
