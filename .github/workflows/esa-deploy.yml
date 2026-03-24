@@ -42,5 +42,4 @@ jobs:
                 --ak $ALIBABA_CLOUD_ACCESS_KEY_ID \
                 --sk $ALIBABA_CLOUD_ACCESS_KEY_SECRET
 
-            
             npx esa-cli deploy 
