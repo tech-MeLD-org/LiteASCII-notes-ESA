@@ -52,7 +52,6 @@ jobs:
 
 ```ts
   // 社交链接与 GitHub 展示配置
-
   github: {
     username: 'your-github-name', // 你的 GitHub 用户名
     repo: 'your-repo',          // 默认展示的主仓库名
