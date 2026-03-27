@@ -6,7 +6,9 @@ A static site template specifically designed for  **Obsidian Knowledge Bases** .
 
 Built with  **Astro 5 · Svelte 5 · Tailwind CSS v4** .
 
-Build output is located in the `dist/` directory. A live demo is deployed on  **Vercel** : [LiteASCII Demo Site](https://lite-ascii.vercel.app)
+Build output is located in the `dist/` directory. A live demo is deployed on  **Vercel** : [Demo Site](techmelody.top)
+
+features : [docs](./features.md)
 
 ---
 
